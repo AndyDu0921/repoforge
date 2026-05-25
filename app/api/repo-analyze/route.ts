@@ -3,7 +3,7 @@ import { fetchRepoDetails } from "@/lib/github";
 import { callDeepSeek, type FetchedRepo } from "@/lib/deepseek";
 import { liveSearchGitHubRepo } from "@/lib/gap-search";
 
-export const maxDuration = 60;
+export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   try {
