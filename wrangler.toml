@@ -1,0 +1,11 @@
+name = "repoforge"
+compatibility_date = "2026-05-25"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+# Public vars (safe to expose in client)
+# DEEPSEEK_API_KEY and GITHUB_TOKEN should be set as secrets in Cloudflare dashboard
+
+[env.production.vars]
+# Add production-only vars here

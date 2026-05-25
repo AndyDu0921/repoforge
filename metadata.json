@@ -1,0 +1,6 @@
+{
+  "name": "RepoForge",
+  "description": "Multi-repo aggregator, gap analyzer, and prompt engineering orchestrator for seamless product generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_DEEPSEEK_API"]
+}
