@@ -71,12 +71,11 @@ export async function POST(req: NextRequest) {
     if (parsedData.gaps && Array.isArray(parsedData.gaps)) {
       await Promise.all(
         parsedData.gaps.map(async (gap: any) => {
-          const term = gap.github_search_term || gap.title || "";
+          const term = gap.github_search_term || "";
           if (term) {
-            const liveResults = await liveSearchGitHubRepo(term, githubToken);
-            if (liveResults.length > 0) {
-              gap.suggested_projects = liveResults;
-            }
+            gap.suggested_projects = await liveSearchGitHubRepo(term, githubToken);
+          } else {
+            gap.suggested_projects = [];
           }
         })
       );
