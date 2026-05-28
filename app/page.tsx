@@ -34,10 +34,9 @@ export default function RepoForgeWorkspace() {
         <StepRenderer />
       </main>
 
-      <footer className="border-t border-zinc-900 py-10 text-center text-[10px] text-zinc-650 font-mono mt-20 max-w-7xl mx-auto px-8 whitespace-nowrap overflow-hidden leading-relaxed uppercase tracking-widest font-bold">
-        <div>RepoForge 物理多存储库熔炼工位 | 当前处于离线本地存储降级模式</div>
-        <p className="text-zinc-700 font-sans text-[10px] mt-1.5 lowercase tracking-normal italic normal-case font-medium">
-          系统底层调用 DeepSeek V4 Pro 开源重构研判大模型。向用户正式装配前，请核验各引入开源库之最终协议合规使用条例。
+      <footer className="border-t border-zinc-800 py-8 text-center mt-16 max-w-7xl mx-auto px-8">
+        <p className="text-xs text-zinc-500">
+          由 DeepSeek AI 驱动 · 数据仅保存在你的浏览器中
         </p>
       </footer>
     </div>

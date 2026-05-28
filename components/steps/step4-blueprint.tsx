@@ -10,11 +10,11 @@ import V2BacklogPanel from "@/components/blueprint/v2-backlog-panel";
 import { downloadMarkdownReport } from "@/lib/download-report";
 
 const TABS = [
-  { id: "architecture" as const, label: "核型架构配对", sub: "导入物料在综合底牌的角色职责", icon: Layers },
-  { id: "gaps" as const, label: "系统拼图缺口", sub: "动态检索实存 GitHub 备选补缺包", icon: Search },
-  { id: "harmony" as const, label: "开源合规审计", sub: "开源法学传染阻抗与解耦防线", icon: AlertTriangle },
-  { id: "claude" as const, label: "CLAUDE.md 指令工坊", sub: "专属工作空间自动驱动提示文本", icon: Terminal },
-  { id: "v2backlog" as const, label: "V2 待办研发池 (归并存案)", sub: "可视化拓扑流图等 V2 延期功能记录", icon: FileText },
+  { id: "architecture" as const, label: "技术架构", sub: "各仓库的角色分工", icon: Layers },
+  { id: "gaps" as const, label: "能力检查", sub: "还缺什么功能", icon: Search },
+  { id: "harmony" as const, label: "许可证", sub: "开源协议是否冲突", icon: AlertTriangle },
+  { id: "claude" as const, label: "开发文档", sub: "复制给 AI 编程工具用", icon: Terminal },
+  { id: "v2backlog" as const, label: "未来计划", sub: "后续版本待做功能", icon: FileText },
 ];
 
 function renderPanel(tab: string) {
@@ -35,55 +35,110 @@ export default function Step4Blueprint() {
   if (!blueprintResult) return null;
 
   const ts = blueprintResult.tech_stack;
+  const assessment = blueprintResult.assessment;
+
+  const gradeColor = (g: string) => {
+    if (!g) return "text-zinc-400";
+    if (g.startsWith("S") || g.startsWith("A")) return "text-green-400";
+    if (g.startsWith("B")) return "text-amber-400";
+    return "text-red-400";
+  };
+
+  const gradeBg = (g: string) => {
+    if (!g) return "bg-zinc-800";
+    if (g.startsWith("S") || g.startsWith("A")) return "bg-green-500/20 border-green-500/30";
+    if (g.startsWith("B")) return "bg-amber-500/20 border-amber-500/30";
+    return "bg-red-500/20 border-red-500/30";
+  };
 
   return (
-    <div className="space-y-10">
-      {/* Header overview card */}
-      <div className="bg-zinc-900/10 border border-zinc-850 p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative group">
-        <h2 className="text-9xl font-black leading-none tracking-tighter mb-4 opacity-5 group-hover:opacity-10 transition-opacity select-none absolute right-8 -top-10">04</h2>
-        <div className="space-y-2.5 relative z-10">
-          <span className="text-[10px] font-mono font-bold tracking-widest text-amber-500 uppercase bg-amber-950/20 px-3 py-1 border border-amber-900/40 inline-block mb-1">
-            合冶熔铸就位 // DeepSeek 精准配合系统方案
+    <div className="space-y-8">
+      {/* Header card */}
+      <div className="border border-zinc-800 bg-zinc-900/30 rounded-xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+        <div className="space-y-2">
+          <span className="text-xs font-mono font-bold text-amber-400 bg-amber-950/20 px-2.5 py-1 border border-amber-900/30 rounded inline-block">
+            方案已生成
           </span>
-          <h2 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">{blueprintResult.product_name}</h2>
-          <p className="text-xs text-zinc-400 max-w-3xl leading-relaxed font-sans font-medium">{blueprintResult.product_description}</p>
+          <h2 className="text-2xl font-bold text-white">{blueprintResult.product_name}</h2>
+          <p className="text-sm text-zinc-400 max-w-3xl leading-relaxed">{blueprintResult.product_description}</p>
         </div>
-        <div className="flex items-center gap-3 shrink-0 self-end md:self-auto relative z-10">
+        <div className="flex items-center gap-3 shrink-0 self-end md:self-auto">
           <button
             onClick={() => downloadMarkdownReport(blueprintResult, techPreference)}
-            className="bg-zinc-950 hover:bg-zinc-900 text-zinc-350 hover:text-white border border-zinc-850 hover:border-zinc-755 px-5 py-3 rounded-none text-[10px] font-mono uppercase tracking-widest font-black flex items-center gap-2 transition-all cursor-pointer"
+            className="bg-zinc-950 hover:bg-zinc-900 text-zinc-300 hover:text-white border border-zinc-700 hover:border-zinc-600 px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4 text-zinc-500" /> <span>导出系统规范蓝图 (.md)</span>
+            <Download className="w-4 h-4" /> 导出方案 (.md)
           </button>
           <button
             onClick={() => dispatch({ type: "SET_STEP", payload: 1 })}
-            className="bg-zinc-150 hover:bg-amber-500 text-zinc-950 px-5 py-3 rounded-none text-[10px] font-mono uppercase tracking-widest font-black flex items-center gap-2 transition-all cursor-pointer"
+            className="bg-zinc-100 hover:bg-amber-400 text-zinc-950 px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all cursor-pointer"
           >
-            <RefreshCw className="w-3.5 h-3.5 stroke-[2.5]" /> <span>载入新物料重置合冶</span>
+            <RefreshCw className="w-3.5 h-3.5" /> 重新开始
           </button>
         </div>
       </div>
 
-      {/* Tech stack metadata stripe */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-0 divide-y md:divide-y-0 md:divide-x divide-zinc-850 bg-zinc-950 border border-zinc-850 text-xs font-mono">
+      {/* Assessment score card */}
+      {assessment && (
+        <div className={`border rounded-xl p-5 ${gradeBg(assessment.overall_grade)}`}>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className={`text-3xl font-black ${gradeColor(assessment.overall_grade)}`}>
+                {assessment.overall_grade || "?"}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-zinc-100">{assessment.summary || "方案已生成"}</p>
+                <div className="flex flex-wrap gap-3 mt-1.5">
+                  <span className="text-xs text-zinc-400">技术匹配<span className={`ml-1 font-bold ${gradeColor(assessment.tech_match)}`}>{assessment.tech_match || "-"}</span></span>
+                  <span className="text-xs text-zinc-400">许可证<span className={`ml-1 font-bold ${gradeColor(assessment.license_risk)}`}>{assessment.license_risk || "-"}</span></span>
+                  <span className="text-xs text-zinc-400">功能覆盖<span className={`ml-1 font-bold ${gradeColor(assessment.coverage)}`}>{assessment.coverage || "-"}</span></span>
+                  <span className="text-xs text-zinc-400">维护风险<span className={`ml-1 font-bold ${gradeColor(assessment.maintenance_risk)}`}>{assessment.maintenance_risk || "-"}</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {assessment.warnings?.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-zinc-700/50 space-y-1">
+              <p className="text-xs font-bold text-amber-400">需要关注</p>
+              {assessment.warnings.map((w: string, i: number) => (
+                <p key={i} className="text-xs text-zinc-400 flex items-start gap-1.5">
+                  <span className="text-amber-400 shrink-0">⚠</span> {w}
+                </p>
+              ))}
+            </div>
+          )}
+          {assessment.strengths?.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-zinc-700/30 space-y-1">
+              <p className="text-xs font-bold text-green-400">优点</p>
+              {assessment.strengths.map((s: string, i: number) => (
+                <p key={i} className="text-xs text-zinc-400 flex items-start gap-1.5">
+                  <span className="text-green-400 shrink-0">✓</span> {s}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tech stack stripe */}
+      <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-zinc-800 bg-zinc-950 border border-zinc-800 rounded-lg text-sm overflow-hidden">
         {[
-          { label: "表现控制面顶盘", value: ts?.frontend || "Next.js / TS", amber: false },
-          { label: "业务中台配位", value: ts?.backend || "Node.js / Express", amber: false },
-          { label: "共享持久性引擎", value: ts?.database || "Postgres / Redis", amber: false },
-          { label: "云部署虚拟底座", value: ts?.deployment || "Docker Compose / Vercel", amber: false },
-          { label: "许可证合规审计 verdict", value: ts?.license_verdict || "MIT Safe", amber: true },
+          { label: "前端", value: ts?.frontend || "Next.js / TS" },
+          { label: "后端", value: ts?.backend || "Node.js" },
+          { label: "数据库", value: ts?.database || "PostgreSQL" },
+          { label: "部署", value: ts?.deployment || "Docker" },
+          { label: "许可证结论", value: ts?.license_verdict || "MIT", highlight: true },
         ].map((item, i) => (
-          <div key={i} className={`space-y-1 p-5 ${item.amber ? "bg-amber-950/5 col-span-2 md:col-span-1 border-t md:border-t-0 border-amber-900/25" : "bg-zinc-900/10"}`}>
-            <span className={`block text-[9px] font-bold tracking-widest uppercase ${item.amber ? "text-amber-500 font-black" : "text-zinc-650"}`}>{item.label}</span>
-            <span className={`block truncate ${item.amber ? "text-zinc-200 font-sans text-xs pt-0.5 font-bold" : "text-amber-500 font-black"}`}>{item.value}</span>
+          <div key={i} className={`space-y-1 p-4 ${item.highlight ? "bg-amber-950/5 col-span-2 md:col-span-1" : "bg-zinc-900/10"}`}>
+            <span className="text-xs text-zinc-500 font-bold block">{item.label}</span>
+            <span className={`block font-bold truncate ${item.highlight ? "text-amber-400" : "text-zinc-200"}`}>{item.value}</span>
           </div>
         ))}
       </div>
 
-      {/* Workspace tabs + panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Tab sidebar */}
-        <div className="lg:col-span-3 flex flex-col gap-1 bg-zinc-950 border border-zinc-850 p-4">
+      {/* Tabs + Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-3 flex flex-col gap-1 bg-zinc-950 border border-zinc-800 rounded-lg p-3">
           {TABS.map((item) => {
             const Icon = item.icon;
             const isActive = activeWorkspaceTab === item.id;
@@ -91,22 +146,23 @@ export default function Step4Blueprint() {
               <button
                 key={item.id}
                 onClick={() => dispatch({ type: "SET_WORKSPACE_TAB", payload: item.id })}
-                className={`text-left p-4 rounded-none border transition-all cursor-pointer flex items-center gap-4 ${
-                  isActive ? "border-amber-500 bg-amber-950/20 text-zinc-100" : "border-transparent bg-transparent hover:bg-zinc-900/40 text-zinc-500 hover:text-zinc-350"
+                className={`text-left p-3 rounded-lg border transition-all cursor-pointer flex items-center gap-3 ${
+                  isActive
+                    ? "border-amber-500 bg-amber-950/20 text-zinc-100 border-l-[3px] border-l-amber-500"
+                    : "border-transparent hover:bg-zinc-900/50 text-zinc-400 hover:text-zinc-300"
                 }`}
               >
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-amber-500" : "text-zinc-650"}`} />
-                <div className="space-y-0.5 truncate uppercase">
-                  <p className={`text-[11px] font-black font-mono tracking-wide ${isActive ? "text-zinc-100" : "text-zinc-450"}`}>{item.label}</p>
-                  <span className="text-[9px] text-zinc-605 font-mono tracking-wider block truncate">{item.sub}</span>
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-amber-400" : "text-zinc-500"}`} />
+                <div className="truncate">
+                  <p className={`text-sm font-bold ${isActive ? "text-zinc-100" : "text-zinc-400"}`}>{item.label}</p>
+                  <span className="text-xs text-zinc-500 block truncate">{item.sub}</span>
                 </div>
               </button>
             );
           })}
         </div>
 
-        {/* Panel area */}
-        <div className="lg:col-span-9 bg-zinc-900/10 border border-zinc-850 p-8 min-h-[460px] relative">
+        <div className="lg:col-span-9 border border-zinc-800 bg-zinc-900/30 rounded-lg p-5 md:p-6 min-h-[420px]">
           {renderPanel(activeWorkspaceTab)}
         </div>
       </div>

@@ -5,10 +5,10 @@ import { Check } from "lucide-react";
 import { useRepoForgeState, useRepoForgeDispatch, type Step } from "@/hooks/use-repo-forge-state";
 
 const STEPS: { id: Step; name: string; label: string }[] = [
-  { id: 1, name: "Materials", label: "加载物料原料" },
-  { id: 2, name: "Alignment", label: "对齐调质方针" },
-  { id: 3, name: "Smelting", label: "熔炉合冶分析" },
-  { id: 4, name: "Blueprint", label: "整合神兵方案" },
+  { id: 1, name: "导入", label: "添加 GitHub 仓库" },
+  { id: 2, name: "配置", label: "设置项目偏好" },
+  { id: 3, name: "分析", label: "AI 生成方案中" },
+  { id: 4, name: "方案", label: "查看你的蓝图" },
 ];
 
 export default function Stepper() {
@@ -24,7 +24,7 @@ export default function Stepper() {
           <React.Fragment key={st.id}>
             {idx > 0 && (
               <div
-                className={`h-[1px] flex-1 mx-4 transition-all duration-500 ${isPassed ? "bg-amber-500" : "bg-zinc-800"}`}
+                className={`h-[1px] flex-1 mx-4 transition-all duration-500 ${isPassed ? "bg-green-500/60" : "bg-zinc-800"}`}
               />
             )}
             <button
@@ -39,25 +39,25 @@ export default function Stepper() {
               }`}
             >
               <div
-                className={`w-8 h-8 rounded-none flex items-center justify-center font-bold border transition-all duration-300 ${
+                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold border-2 transition-all duration-300 ${
                   isActive
-                    ? "border-amber-400 bg-amber-950/40 text-amber-300 ring-2 ring-amber-500/10"
+                    ? "border-amber-400 bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20"
                     : isPassed
-                    ? "border-amber-500 bg-amber-500 text-zinc-950 font-black"
-                    : "border-zinc-800 bg-zinc-900/60 text-zinc-600 group-hover:border-zinc-700"
+                    ? "border-green-500 bg-green-500 text-white"
+                    : "border-zinc-700 bg-zinc-900 text-zinc-500 group-hover:border-zinc-600"
                 }`}
               >
                 {isPassed ? <Check className="w-4 h-4 stroke-[2.5]" /> : st.id}
               </div>
-              <div className="text-center font-sans">
+              <div className="text-center">
                 <p
-                  className={`font-semibold text-[11px] ${
-                    isActive ? "text-amber-300 font-bold" : isPassed ? "text-zinc-300 hover:text-amber-400" : "text-zinc-650"
+                  className={`font-bold text-xs ${
+                    isActive ? "text-white" : isPassed ? "text-zinc-300" : "text-zinc-550"
                   }`}
                 >
                   {st.name}
                 </p>
-                <span className="text-[9px] text-zinc-550 block font-mono">{st.label}</span>
+                <span className="text-[10px] text-zinc-500 block">{st.label}</span>
               </div>
             </button>
           </React.Fragment>

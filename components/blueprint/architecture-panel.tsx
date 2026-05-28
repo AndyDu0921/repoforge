@@ -9,34 +9,34 @@ export default function ArchitecturePanel() {
   const edges = blueprintResult?.architecture_diagram_data?.edges ?? [];
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2 border-b border-zinc-850 pb-5">
-        <span className="text-[10px] font-mono tracking-widest uppercase font-bold text-amber-500 block">物料在复合平台职责配对</span>
-        <h3 className="text-xl font-black text-white font-mono uppercase flex items-center gap-2">
-          <Layers className="w-5 h-5 text-amber-500" /> <span>已熔接之物理开源模块角色分配</span>
+    <div className="space-y-6">
+      <div className="space-y-2 border-b border-zinc-800 pb-4">
+        <span className="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest block">技术架构</span>
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <Layers className="w-4 h-4 text-amber-400" /> 各个仓库在项目中的角色
         </h3>
-        <p className="text-xs text-zinc-450 font-sans pr-14 leading-relaxed">
-          DeepSeek 解析了导入仓库的代码规模、核心控制器或视图部分，向其派驻以下明确职责，保障不发生冗量重合冲突。
+        <p className="text-sm text-zinc-400 leading-relaxed">
+          AI 分析了每个仓库的代码结构，给它们分配了明确的分工角色，避免功能重叠和依赖冲突。
         </p>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {mods.map((mod: any, index: number) => (
-          <div key={index} className="bg-zinc-950 border border-zinc-850 p-6 rounded-none space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-850/50 pb-2.5">
-              <span className="text-xs font-black font-mono text-amber-500 uppercase tracking-tight">{mod.repo}</span>
-              <span className="text-[9px] font-mono bg-zinc-900 text-zinc-300 font-bold px-3 py-1 border border-zinc-800 uppercase tracking-widest">
-                派驻职责: {mod.role}
+          <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-lg p-5 space-y-3">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+              <span className="text-sm font-bold text-amber-400 font-mono">{mod.repo}</span>
+              <span className="text-xs font-mono bg-zinc-900 text-zinc-300 font-bold px-2.5 py-1 border border-zinc-700 rounded">
+                角色：{mod.role}
               </span>
             </div>
-            <div className="space-y-3 font-mono text-xs">
-              <p className="text-[11px] text-zinc-400 leading-relaxed font-sans">
-                <strong className="text-zinc-350">物料同构与技术兼容方案判定：</strong> {mod.technical_compatibility}
+            <div className="space-y-2 text-sm">
+              <p className="text-zinc-300 leading-relaxed">
+                <strong className="text-zinc-400">技术兼容性：</strong> {mod.technical_compatibility}
               </p>
-              <div className="flex flex-wrap gap-2 items-center">
-                <span className="text-[9px] text-zinc-550 block font-bold uppercase tracking-widest">抽取引渡核心特征:</span>
+              <div className="flex flex-wrap gap-1.5 items-center">
+                <span className="text-xs text-zinc-500 block font-bold">主要能力：</span>
                 {(mod.key_features ?? []).map((f: string, i: number) => (
-                  <span key={i} className="text-[9px] font-mono bg-zinc-900 hover:bg-zinc-850 text-zinc-305 px-2 py-0.5 border border-zinc-805 uppercase tracking-wide">
+                  <span key={i} className="text-xs font-mono bg-zinc-900 hover:bg-zinc-800 text-zinc-300 px-2 py-0.5 border border-zinc-700 rounded transition-colors">
                     {f}
                   </span>
                 ))}
@@ -47,16 +47,14 @@ export default function ArchitecturePanel() {
       </div>
 
       {edges.length > 0 && (
-        <div className="bg-zinc-950 border border-zinc-850 p-6 space-y-5 font-mono">
-          <h4 className="text-xs font-black uppercase text-zinc-300 tracking-wider">综合架构集成关系物理走向流</h4>
-          <div className="space-y-4 text-xs font-mono">
+        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-5 space-y-4 font-mono">
+          <h4 className="text-sm font-bold text-zinc-200">模块关系</h4>
+          <div className="space-y-2.5 text-sm">
             {edges.map((edge: any, sIdx: number) => (
-              <div key={sIdx} className="flex flex-col md:flex-row md:items-center gap-2 bg-zinc-900/20 border border-zinc-850 p-3.5 pl-5 relative before:absolute before:left-2.5 before:top-4 before:w-1.5 before:h-1.5 before:bg-amber-500">
-                <div>
-                  <span className="text-zinc-400 font-bold mr-1 bg-zinc-900 px-2 py-0.5 border border-zinc-800 text-[10px]">{edge.from}</span>
-                  <span className="text-zinc-650 font-bold mx-2">──({edge.label})──❯</span>
-                  <span className="text-amber-500 font-bold bg-amber-950/20 px-2 py-0.5 border border-amber-900/40 text-[10px]">{edge.to}</span>
-                </div>
+              <div key={sIdx} className="flex items-center gap-2 bg-zinc-900/30 border border-zinc-800 rounded-lg p-3 pl-4">
+                <span className="text-zinc-300 font-bold">{edge.from}</span>
+                <span className="text-zinc-500 text-xs">──({edge.label})──❯</span>
+                <span className="text-amber-400 font-bold">{edge.to}</span>
               </div>
             ))}
           </div>

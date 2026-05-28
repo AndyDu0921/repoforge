@@ -5,20 +5,34 @@ import { liveSearchGitHubRepo } from "@/lib/gap-search";
 
 export const runtime = "edge";
 
+const MAX_REPOS = 10;
+const SAFE_ERROR = "服务繁忙，请稍后重试。";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { repos, dialogueAnswers, customToken } = body;
 
     if (!repos || !Array.isArray(repos) || repos.length === 0) {
-      return NextResponse.json(
-        { error: "至少需要导入一个 GitHub 仓库作为源材料。" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "请至少添加一个 GitHub 仓库。" }, { status: 400 });
+    }
+    if (repos.length > MAX_REPOS) {
+      return NextResponse.json({ error: `最多只能同时分析 ${MAX_REPOS} 个仓库。` }, { status: 400 });
+    }
+
+    // Validate each repo has valid owner/repo
+    for (const r of repos) {
+      if (!r.owner || !r.repo || /[^a-zA-Z0-9._-]/.test(r.owner) || /[^a-zA-Z0-9._-]/.test(r.repo)) {
+        return NextResponse.json({ error: `仓库格式无效：${r.owner}/${r.repo}` }, { status: 400 });
+      }
     }
 
     const githubToken = customToken || process.env.GITHUB_TOKEN || "";
-    const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "YOUR_DEEPSEEK_API_KEY";
+    const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
+
+    if (!deepseekApiKey) {
+      return NextResponse.json({ error: "服务器未配置 AI API，请联系管理员设置 DEEPSEEK_API_KEY。" }, { status: 500 });
+    }
 
     // 1. Fetch all repo metadata in parallel
     const fetchedRepos: FetchedRepo[] = [];
@@ -29,20 +43,20 @@ export async function POST(req: NextRequest) {
         try {
           const detail = await fetchRepoDetails(r.owner, r.repo, githubToken);
           fetchedRepos.push({ ...detail, userNotes: r.userNotes || "" });
-        } catch (err: any) {
-          fetchErrors.push(`${r.owner}/${r.repo}: ${err.message || err}`);
+        } catch {
+          fetchErrors.push(`${r.owner}/${r.repo}: 无法获取此仓库信息，请检查仓库是否存在或 API 限流。`);
         }
       })
     );
 
     if (fetchedRepos.length === 0) {
       return NextResponse.json(
-        { error: "无法获取指定 GitHub 仓库的元数据包，请检查路径或 GitHub PAT 开源可用性。", details: fetchErrors },
+        { error: "无法获取任何仓库信息，请检查仓库路径或网络连接。", details: fetchErrors },
         { status: 404 }
       );
     }
 
-    // 2. Call DeepSeek for semantic analysis
+    // 2. Call DeepSeek
     const answers = {
       audience: dialogueAnswers?.audience || "saas",
       audienceCustom: dialogueAnswers?.audienceCustom || "",
@@ -57,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     const parsedData = await callDeepSeek(fetchedRepos, answers, deepseekApiKey);
 
-    // 3. Enrich gaps with live GitHub Search results
+    // 3. Enrich gaps with live GitHub Search
     if (parsedData.gaps && Array.isArray(parsedData.gaps)) {
       await Promise.all(
         parsedData.gaps.map(async (gap: any) => {
@@ -82,11 +96,7 @@ export async function POST(req: NextRequest) {
       })),
       fetchErrors: fetchErrors.length > 0 ? fetchErrors : undefined,
     });
-  } catch (error: any) {
-    console.error("API handler failure:", error);
-    return NextResponse.json(
-      { error: error?.message || "在执行多物理仓库熔炼分析时遭遇未知错误，请检查网络和 API 配置。" },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ error: SAFE_ERROR }, { status: 500 });
   }
 }

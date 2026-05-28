@@ -4,3 +4,31 @@
   --font-sans: var(--font-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-mono), monospace;
 }
+
+/* Smooth focus ring for all interactive elements */
+*:focus-visible {
+  outline: 2px solid theme("colors.amber.400");
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: theme("colors.zinc.950");
+}
+::-webkit-scrollbar-thumb {
+  background: theme("colors.zinc.700");
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: theme("colors.zinc.600");
+}
+
+/* Selection color */
+::selection {
+  background: rgba(245, 158, 11, 0.2);
+  color: theme("colors.amber.300");
+}

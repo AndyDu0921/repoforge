@@ -5,6 +5,9 @@ import { liveSearchGitHubRepo } from "@/lib/gap-search";
 
 export const runtime = "edge";
 
+const MAX_REPOS = 10;
+const SAFE_ERROR = "服务繁忙，请稍后重试。";
+
 function sendEvent(
   controller: ReadableStreamDefaultController,
   encoder: TextEncoder,
@@ -19,24 +22,48 @@ export async function POST(req: NextRequest) {
   const { repos, dialogueAnswers, customToken } = body;
 
   const githubToken = customToken || process.env.GITHUB_TOKEN || "";
-  const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "YOUR_DEEPSEEK_API_KEY";
+  const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
+
+  if (!deepseekApiKey) {
+    return new Response(
+      JSON.stringify({ error: "服务器未配置 AI API，请联系管理员设置 DEEPSEEK_API_KEY。" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  if (!repos || !Array.isArray(repos) || repos.length === 0) {
+    return new Response(
+      JSON.stringify({ error: "请至少添加一个 GitHub 仓库。" }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  if (repos.length > MAX_REPOS) {
+    return new Response(
+      JSON.stringify({ error: `最多只能同时分析 ${MAX_REPOS} 个仓库。` }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  // Validate repo identifiers
+  for (const r of repos) {
+    if (!r.owner || !r.repo || /[^a-zA-Z0-9._-]/.test(r.owner) || /[^a-zA-Z0-9._-]/.test(r.repo)) {
+      return new Response(
+        JSON.stringify({ error: `仓库格式无效：${r.owner}/${r.repo}` }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+  }
 
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        // Validate
-        if (!repos || !Array.isArray(repos) || repos.length === 0) {
-          sendEvent(controller, encoder, "error", { message: "至少需要导入一个 GitHub 仓库作为源材料。" });
-          controller.close();
-          return;
-        }
-
         // Stage 1: Fetch repos
         sendEvent(controller, encoder, "stage", {
           stage: "fetching_repos",
-          message: `核录物理仓库物料：共计加载 ${repos.length} 个目标开源工程。`,
+          message: `正在读取 ${repos.length} 个仓库的信息...`,
           progress: 15,
         });
 
@@ -48,15 +75,15 @@ export async function POST(req: NextRequest) {
             try {
               const detail = await fetchRepoDetails(r.owner, r.repo, githubToken);
               fetchedRepos.push({ ...detail, userNotes: r.userNotes || "" });
-            } catch (err: any) {
-              fetchErrors.push(`${r.owner}/${r.repo}: ${err.message || err}`);
+            } catch {
+              fetchErrors.push(`${r.owner}/${r.repo}: 无法获取` );
             }
           })
         );
 
         if (fetchedRepos.length === 0) {
           sendEvent(controller, encoder, "error", {
-            message: "无法获取指定 GitHub 仓库的元数据包。",
+            message: "无法获取任何仓库信息，请检查仓库路径或网络连接。",
             details: fetchErrors,
           });
           controller.close();
@@ -65,14 +92,14 @@ export async function POST(req: NextRequest) {
 
         sendEvent(controller, encoder, "stage", {
           stage: "fetched_repos",
-          message: `测试并挂载 GitHub API 终点，成功提取 ${fetchedRepos.length} 个仓库元数据。正在提取源材料三方依赖树...`,
+          message: `已读取 ${fetchedRepos.length} 个仓库，正在调用 AI 进行分析...`,
           progress: 35,
         });
 
-        // Stage 2: DeepSeek analysis
+        // Stage 2: DeepSeek
         sendEvent(controller, encoder, "stage", {
           stage: "analyzing",
-          message: "完成基本物料预审。全量投喂至 DeepSeek V4 Pro 语义架构分析大底座，启动高维映射融合...",
+          message: "AI 正在分析仓库结构、依赖关系和技术栈...",
           progress: 50,
         });
 
@@ -92,7 +119,7 @@ export async function POST(req: NextRequest) {
 
         sendEvent(controller, encoder, "stage", {
           stage: "deepseek_done",
-          message: "模型高维映射融合就绪。开始探查代码缺口，并行检索 GitHub live 实存推荐存储库进行对齐...",
+          message: "AI 分析完成。正在检索开源社区中的补充组件...",
           progress: 75,
         });
 
@@ -113,14 +140,14 @@ export async function POST(req: NextRequest) {
 
         sendEvent(controller, encoder, "stage", {
           stage: "searching_done",
-          message: "对齐推荐库成功。正在为检测到的痛点做许可证侵入传染性法律合规性审计评判...",
+          message: "补充组件已就位。正在进行许可证合规检查...",
           progress: 90,
         });
 
         // Stage 4: Done
         sendEvent(controller, encoder, "stage", {
           stage: "done",
-          message: "編排高品质 CLAUDE.md 标准设计指令提示词与第一期构建落地路径图成功！熔铸完成。",
+          message: "方案已生成！正在整理开发蓝图...",
           progress: 100,
         });
 
@@ -135,10 +162,8 @@ export async function POST(req: NextRequest) {
         });
 
         controller.close();
-      } catch (error: any) {
-        sendEvent(controller, encoder, "error", {
-          message: error?.message || "在执行多物理仓库熔炼分析时遭遇未知错误。",
-        });
+      } catch {
+        sendEvent(controller, encoder, "error", { message: SAFE_ERROR });
         controller.close();
       }
     },

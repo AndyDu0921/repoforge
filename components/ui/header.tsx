@@ -8,20 +8,20 @@ export default function Header() {
   const dispatch = useRepoForgeDispatch();
 
   return (
-    <header className="border-b border-zinc-900 bg-zinc-950/90 backdrop-blur sticky top-0 z-50 px-8 py-5 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="w-9 h-9 bg-amber-500 flex items-center justify-center font-black text-zinc-950 text-lg tracking-tighter">
+    <header className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur sticky top-0 z-50 px-6 md:px-8 py-4 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center font-black text-zinc-950 text-base">
           RF
         </div>
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-black tracking-tighter uppercase text-zinc-100">RepoForge</h1>
-            <span className="text-[8px] bg-zinc-900 border border-zinc-800 text-amber-500 px-2 py-0.5 font-mono tracking-wider font-bold uppercase">
-              DeepSeek PRO ENGINE
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-bold tracking-tight text-white">RepoForge</h1>
+            <span className="text-[9px] bg-zinc-800 border border-zinc-700 text-amber-400 px-1.5 py-0.5 font-mono font-bold rounded">
+              DeepSeek
             </span>
           </div>
-          <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-bold">
-            多物理 GitHub 仓库聚合合冶研判与提示词工程编排器
+          <p className="text-[11px] text-zinc-500 font-sans">
+            把多个 GitHub 开源项目，组合成一个完整产品
           </p>
         </div>
       </div>
@@ -29,14 +29,14 @@ export default function Header() {
       <div className="flex items-center gap-3">
         <button
           onClick={() => dispatch({ type: "SET_SHOW_SETTINGS", payload: !showSettings })}
-          className={`flex items-center gap-2 text-[9px] font-mono font-bold uppercase tracking-widest px-4 py-2.5 rounded-none border transition-all ${
+          className={`flex items-center gap-1.5 text-[11px] font-sans font-medium px-3 py-2 rounded-lg border transition-all ${
             showSettings
-              ? "border-amber-500 bg-amber-950/15 text-amber-400"
-              : "border-zinc-850 hover:border-zinc-750 bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 cursor-pointer"
+              ? "border-amber-500/50 bg-amber-950/20 text-amber-400"
+              : "border-zinc-700 hover:border-zinc-600 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
           }`}
         >
           <Settings className="w-3.5 h-3.5" />
-          <span>配置 GitHub 访问令牌</span>
+          <span>设置 Token</span>
         </button>
       </div>
     </header>

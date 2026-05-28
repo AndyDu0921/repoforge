@@ -11,7 +11,7 @@ function CustomInput({ value, onChange, placeholder }: { value: string; onChange
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500/50 text-zinc-300 p-3 rounded-none text-xs placeholder:text-zinc-650 focus:outline-none transition-colors font-sans leading-relaxed mt-3"
+      className="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500/50 text-zinc-300 p-3 rounded-lg text-sm placeholder:text-zinc-600 focus:outline-none transition-colors font-sans leading-relaxed mt-3"
     />
   );
 }
@@ -26,212 +26,215 @@ export default function Step2Alignment() {
   const [showLicenseCustom, setShowLicenseCustom] = useState(!!licenseCustom);
 
   return (
-    <div className="max-w-4xl mx-auto bg-zinc-900/10 border border-zinc-850 rounded-none p-8 space-y-10 group relative">
-      <div className="space-y-2 border-b border-zinc-850 pb-5">
-        <span className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest block">
-          阶段 02 // 目标重塑调配对齐
-        </span>
-        <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-none mb-2">
-          调配熔炼系统的定位参数对齐
-        </h2>
-        <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-          在下方预设选项中快速对齐，或点击「+ 自定义」为每个维度补充你的独立构思与额外要求。DeepSeek 熔炉会综合考虑预设选项与自定义输入。
+    <div className="max-w-4xl mx-auto border border-zinc-800 bg-zinc-900/30 rounded-xl p-6 md:p-8 space-y-8">
+      <div className="space-y-2 border-b border-zinc-800 pb-4">
+        <span className="text-[10px] uppercase tracking-widest font-mono font-bold text-amber-400 block">第 2 步</span>
+        <h2 className="text-2xl font-bold text-white leading-tight">告诉 AI 你想要什么</h2>
+        <p className="text-sm text-zinc-400 leading-relaxed">
+          先选最接近的选项，再点「+ 自定义」补充你的具体想法。你说的越清楚，AI 出的方案越靠谱。
         </p>
       </div>
 
       {/* Q1: Audience */}
-      <div className="space-y-4">
-        <label className="text-xs font-black font-mono text-amber-500 uppercase tracking-widest flex items-center gap-2">
-          <Users className="w-4 h-4 text-zinc-500" /> <span>1. 目标受众与运作定位是？</span>
+      <div className="space-y-3">
+        <label className="text-sm font-bold text-white flex items-center gap-2">
+          <Users className="w-4 h-4 text-amber-400" /> 1. 这款产品给谁用？
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {([
-            { id: "saas" as Audience, title: "零售 SaaS 公网产品", desc: "注重极致的外观质感、首屏响应，集成主流凭据系统与 Stripe 支付计费体系。", meta: "周期付费 / 零售级" },
-            { id: "internal" as Audience, title: "企业内网服务台", desc: "内网运行环境。强关系型持久化审计、全面的权限控制日志与统一的操作审计面板。", meta: "强审计 / 生产安全性" },
-            { id: "personal" as Audience, title: "极客本地执行工具/CLI", desc: "无需联网的单兵脚本。本地 SQLite 极速起用、直观流畅，轻量化逻辑自洽反馈。", meta: "本地极速 / 零外部负担" },
+            { id: "saas" as Audience, title: "公开的 SaaS 产品", desc: "面向大众用户，需要好看的界面、注册登录、支付功能。", meta: "在线服务" },
+            { id: "internal" as Audience, title: "公司内部工具", desc: "内部使用，注重权限管理、操作日志、数据安全。", meta: "内部系统" },
+            { id: "personal" as Audience, title: "个人或小团队工具", desc: "轻量级，快速启动，不依赖外部服务。", meta: "轻量工具" },
           ]).map((item) => (
             <button
               key={item.id}
               onClick={() => dispatch({ type: "SET_AUDIENCE", payload: item.id })}
-              className={`text-left p-4.5 rounded-none border transition-all cursor-pointer flex flex-col gap-2 ${
-                audience === item.id ? "border-amber-500 bg-amber-950/20 text-zinc-100" : "border-zinc-850 hover:border-zinc-750 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200"
+              className={`text-left p-4 rounded-lg border transition-all cursor-pointer flex flex-col gap-2 ${
+                audience === item.id
+                  ? "border-amber-500 bg-amber-950/25 border-l-[3px] border-l-amber-500 text-zinc-100"
+                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200"
               }`}
             >
               <div className="flex items-center justify-between w-full">
-                <span className="text-xs font-black uppercase tracking-tight text-zinc-150">{item.title}</span>
-                <span className={`text-[8px] font-mono tracking-wider font-bold uppercase ${audience === item.id ? "text-amber-500" : "text-zinc-600"}`}>{item.meta}</span>
+                <span className="text-sm font-bold">{item.title}</span>
+                <span className={`text-[10px] font-mono font-bold ${audience === item.id ? "text-amber-400" : "text-zinc-600"}`}>{item.meta}</span>
               </div>
-              <p className="text-[11px] text-zinc-500 leading-relaxed font-sans">{item.desc}</p>
+              <p className="text-xs text-zinc-500 leading-relaxed font-sans">{item.desc}</p>
             </button>
           ))}
         </div>
         {!showAudienceCustom ? (
-          <button onClick={() => setShowAudienceCustom(true)} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-550 hover:text-amber-400 transition-colors cursor-pointer ml-1">
-            <Plus className="w-3 h-3" /> <span>添加自定义补充说明</span>
+          <button onClick={() => setShowAudienceCustom(true)} className="flex items-center gap-1.5 text-xs font-sans text-zinc-500 hover:text-amber-400 transition-colors cursor-pointer ml-1">
+            <Plus className="w-3 h-3" /> 补充你的想法
           </button>
         ) : (
           <div className="space-y-1.5">
-            <button onClick={() => { setShowAudienceCustom(false); dispatch({ type: "SET_AUDIENCE_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
-              <Pencil className="w-3 h-3" /> <span>收起自定义</span>
+            <button onClick={() => { setShowAudienceCustom(false); dispatch({ type: "SET_AUDIENCE_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-xs font-sans text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer">
+              <Pencil className="w-3 h-3" /> 收起
             </button>
-            <CustomInput value={audienceCustom} onChange={(v) => dispatch({ type: "SET_AUDIENCE_CUSTOM", payload: v })} placeholder="例如：面向海外留学生的学术写作辅助平台，需支持多语言、移动端优先..." />
+            <CustomInput value={audienceCustom} onChange={(v) => dispatch({ type: "SET_AUDIENCE_CUSTOM", payload: v })} placeholder="比如：面向海外留学生，需要支持中英文切换，移动端优先..." />
           </div>
         )}
       </div>
 
       {/* Q2: Commercial */}
-      <div className="space-y-4 pt-1">
-        <label className="text-xs font-black font-mono text-amber-500 uppercase tracking-widest flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-zinc-500" /> <span>2. 商业变现定位设计？</span>
+      <div className="space-y-3">
+        <label className="text-sm font-bold text-white flex items-center gap-2">
+          <DollarSign className="w-4 h-4 text-amber-400" /> 2. 怎么赚钱或运营？
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {([
-            { id: "subscription" as Commercial, title: "典型按月/周期付费订阅", desc: "规划 API 支付验证门阻，建立按量计费逻辑，与第三方计费 SDK 做深度物料契合。", meta: "SaaS 收费" },
-            { id: "opensource" as Commercial, title: "独立捐赠或完全开源分发", desc: "不进行任何多余的商业付费设计，崇尚开源分享，系统向极致的开发者自建进行对齐。", meta: "无付费墙" },
-            { id: "selfhosted" as Commercial, title: "企业私有物理打包部署", desc: "支持本地导入许可证许可，封装成支持配置式独立启动的可自维护集群包结构。", meta: "私有许可证" },
+            { id: "subscription" as Commercial, title: "按月/按量付费", desc: "用户按月订阅或按用量付费。需要接入支付、账单系统。", meta: "付费模式" },
+            { id: "opensource" as Commercial, title: "完全开源免费", desc: "纯开源项目，不做商业付费设计，面向开发者社区。", meta: "免费开源" },
+            { id: "selfhosted" as Commercial, title: "企业私有部署", desc: "打包成企业可自己部署的版本，按授权收费。", meta: "私有部署" },
           ]).map((item) => (
             <button
               key={item.id}
               onClick={() => dispatch({ type: "SET_COMMERCIAL", payload: item.id })}
-              className={`text-left p-4.5 rounded-none border transition-all cursor-pointer flex flex-col gap-2 ${
-                commercial === item.id ? "border-amber-500 bg-amber-950/20 text-zinc-100" : "border-zinc-850 hover:border-zinc-750 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200"
+              className={`text-left p-4 rounded-lg border transition-all cursor-pointer flex flex-col gap-2 ${
+                commercial === item.id
+                  ? "border-amber-500 bg-amber-950/25 border-l-[3px] border-l-amber-500 text-zinc-100"
+                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200"
               }`}
             >
               <div className="flex items-center justify-between w-full">
-                <span className="text-xs font-black uppercase tracking-tight text-zinc-150">{item.title}</span>
-                <span className={`text-[8px] font-mono tracking-wider font-bold uppercase ${commercial === item.id ? "text-amber-500" : "text-zinc-650"}`}>{item.meta}</span>
+                <span className="text-sm font-bold">{item.title}</span>
+                <span className={`text-[10px] font-mono font-bold ${commercial === item.id ? "text-amber-400" : "text-zinc-600"}`}>{item.meta}</span>
               </div>
-              <p className="text-[11px] text-zinc-500 leading-relaxed font-sans">{item.desc}</p>
+              <p className="text-xs text-zinc-500 leading-relaxed font-sans">{item.desc}</p>
             </button>
           ))}
         </div>
         {!showCommercialCustom ? (
-          <button onClick={() => setShowCommercialCustom(true)} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-550 hover:text-amber-400 transition-colors cursor-pointer ml-1">
-            <Plus className="w-3 h-3" /> <span>添加自定义补充说明</span>
+          <button onClick={() => setShowCommercialCustom(true)} className="flex items-center gap-1.5 text-xs font-sans text-zinc-500 hover:text-amber-400 transition-colors cursor-pointer ml-1">
+            <Plus className="w-3 h-3" /> 补充你的想法
           </button>
         ) : (
           <div className="space-y-1.5">
-            <button onClick={() => { setShowCommercialCustom(false); dispatch({ type: "SET_COMMERCIAL_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
-              <Pencil className="w-3 h-3" /> <span>收起自定义</span>
+            <button onClick={() => { setShowCommercialCustom(false); dispatch({ type: "SET_COMMERCIAL_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-xs font-sans text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer">
+              <Pencil className="w-3 h-3" /> 收起
             </button>
-            <CustomInput value={commercialCustom} onChange={(v) => dispatch({ type: "SET_COMMERCIAL_CUSTOM", payload: v })} placeholder="例如：基础功能免费开源，高级 AI 功能按 token 计费，企业版支持私有部署授权..." />
+            <CustomInput value={commercialCustom} onChange={(v) => dispatch({ type: "SET_COMMERCIAL_CUSTOM", payload: v })} placeholder="比如：基础功能免费，高级 AI 功能按次收费，企业版单独定价..." />
           </div>
         )}
       </div>
 
       {/* Q3: Tech Stack */}
-      <div className="space-y-4 pt-1">
-        <label className="text-xs font-black font-mono text-amber-500 uppercase tracking-widest flex items-center gap-2">
-          <Code className="w-4 h-4 text-zinc-500" /> <span>3. 核心技术栈偏好（决定系统底牌逻辑，防止 AI 默认黑盒猜测）</span>
+      <div className="space-y-3">
+        <label className="text-sm font-bold text-white flex items-center gap-2">
+          <Code className="w-4 h-4 text-amber-400" /> 3. 想用什么技术栈？
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {([
-            { id: "typescript-next", title: "Pure TS 全栈", desc: "Next.js 15+ (App Router) + Tailwind CSS + Prisma / Drizzle。全链路轻量快速部署。", meta: "Next.js / TS" },
-            { id: "python-ai", title: "Python AI 后端", desc: "FastAPI / Django 后端服务 + React 前端独立。面向强人工核酸 agents 与数据分析。", meta: "FastAPI / Py" },
-            { id: "go-rust", title: "Go / Rust 高性能型", desc: "Go Fin / Rust Actix 服务 + Next.js 前端混合。极致提升高频数据交换性能与小微打包体积。", meta: "Go & Rust / API" },
-            { id: "agnostic-compose", title: "多语言容器异构", desc: "Docker Compose 分散微服务网络。完全解耦不强求语言同构，各尽所需开展网关拦截汇入。", meta: "agnostic micro" },
+            { id: "typescript-next", title: "TypeScript 全栈", desc: "Next.js + Tailwind CSS + Prisma/Drizzle。现代化 Web 首选。", meta: "推荐" },
+            { id: "python-ai", title: "Python 后端", desc: "FastAPI/Django 做后端，React 做前端。适合 AI 和数据项目。", meta: "AI 友好" },
+            { id: "go-rust", title: "Go / Rust 高性能", desc: "高并发、低延迟、性能优先的后端服务。", meta: "高性能" },
+            { id: "agnostic-compose", title: "混合架构", desc: "不同模块用不同语言，通过 Docker 和 API 协作。", meta: "灵活" },
           ]).map((item) => (
             <button
               key={item.id}
               onClick={() => dispatch({ type: "SET_TECH_PREFERENCE", payload: item.id })}
-              className={`text-left p-4.5 rounded-none border transition-all cursor-pointer flex flex-col justify-between min-h-[140px] ${
-                techPreference === item.id ? "border-amber-500 bg-amber-950/20 text-zinc-100" : "border-zinc-850 hover:border-zinc-750 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200"
+              className={`text-left p-4 rounded-lg border transition-all cursor-pointer flex flex-col justify-between min-h-[120px] ${
+                techPreference === item.id
+                  ? "border-amber-500 bg-amber-950/25 border-l-[3px] border-l-amber-500 text-zinc-100"
+                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200"
               }`}
             >
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-[11px] font-black uppercase tracking-tight text-zinc-100">{item.title}</span>
-                </div>
-                <p className="text-[10px] text-zinc-500 leading-normal font-sans">{item.desc}</p>
+                <span className="text-sm font-bold text-zinc-100">{item.title}</span>
+                <p className="text-xs text-zinc-500 leading-relaxed font-sans">{item.desc}</p>
               </div>
-              <span className={`text-[8px] font-mono tracking-wider font-bold uppercase block mt-3 border-t border-zinc-850/40 pt-1.5 ${techPreference === item.id ? "text-amber-500" : "text-zinc-650"}`}>{item.meta}</span>
+              <span className={`text-[10px] font-mono font-bold block mt-2 border-t border-zinc-800/40 pt-1.5 ${techPreference === item.id ? "text-amber-400" : "text-zinc-600"}`}>{item.meta}</span>
             </button>
           ))}
         </div>
         {!showTechCustom ? (
-          <button onClick={() => setShowTechCustom(true)} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-550 hover:text-amber-400 transition-colors cursor-pointer ml-1">
-            <Plus className="w-3 h-3" /> <span>添加自定义技术栈需求</span>
+          <button onClick={() => setShowTechCustom(true)} className="flex items-center gap-1.5 text-xs font-sans text-zinc-500 hover:text-amber-400 transition-colors cursor-pointer ml-1">
+            <Plus className="w-3 h-3" /> 补充技术要求
           </button>
         ) : (
           <div className="space-y-1.5">
-            <button onClick={() => { setShowTechCustom(false); dispatch({ type: "SET_TECH_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
-              <Pencil className="w-3 h-3" /> <span>收起自定义</span>
+            <button onClick={() => { setShowTechCustom(false); dispatch({ type: "SET_TECH_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-xs font-sans text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer">
+              <Pencil className="w-3 h-3" /> 收起
             </button>
-            <CustomInput value={techCustom} onChange={(v) => dispatch({ type: "SET_TECH_CUSTOM", payload: v })} placeholder="例如：前端必须用 React，后端无偏好，但数据库必须用 PostgreSQL + Redis 缓存层，ORM 用 Drizzle..." />
+            <CustomInput value={techCustom} onChange={(v) => dispatch({ type: "SET_TECH_CUSTOM", payload: v })} placeholder="比如：前端必须 React，后端随便，但数据库一定要用 PostgreSQL + Redis..." />
           </div>
         )}
       </div>
 
       {/* Q4: License */}
-      <div className="space-y-4 pt-1">
-        <label className="text-xs font-black font-mono text-amber-500 uppercase tracking-widest flex items-center gap-2">
-          <FileText className="w-4 h-4 text-zinc-500" /> <span>4. 开源许可证安全考量？</span>
+      <div className="space-y-3">
+        <label className="text-sm font-bold text-white flex items-center gap-2">
+          <FileText className="w-4 h-4 text-amber-400" /> 4. 开源许可证有什么要求？
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {([
-            { id: "strict" as LicenseChoice, title: "严格仅限商用免传染", desc: "屏蔽 GPL、AGPL 等任何强传染和互惠式协议物料，首选 MIT/Apache-2.0 依赖，深度保护核心业务产权私有性。", meta: "强力私产保护" },
-            { id: "permissive" as LicenseChoice, title: "宽松互惠可交互协议", desc: "允许部分 MPL、LGPL 允许的弱传染交互库，只要确保它们作为三方动态链接库或相对独立微服务，不影响主干闭源。", meta: "动态交互规避" },
-            { id: "whatever" as LicenseChoice, title: "唯功用优先 (全吞入)", desc: "无需作任何开源法规限制，唯重现系统拼图完整性为最高旨意。合规法律事务预留予未来治理。", meta: "极简功能至上" },
+            { id: "strict" as LicenseChoice, title: "严格：只允许商用安全协议", desc: "禁止 GPL/AGPL 等传染性协议。首选 MIT、Apache-2.0。保护你的代码闭源权利。", meta: "安全优先" },
+            { id: "permissive" as LicenseChoice, title: "宽松：允许弱传染协议", desc: "可以接受 LGPL、MPL 等弱传染协议，确保它们以动态链接方式使用。", meta: "均衡" },
+            { id: "whatever" as LicenseChoice, title: "无所谓：功能优先", desc: "不考虑许可证限制。先把功能做出来，合规的事以后再说。", meta: "快速" },
           ]).map((item) => (
             <button
               key={item.id}
               onClick={() => dispatch({ type: "SET_LICENSE_CHOICE", payload: item.id })}
-              className={`text-left p-4.5 rounded-none border transition-all cursor-pointer flex flex-col gap-2 ${
-                licenseChoice === item.id ? "border-amber-500 bg-amber-950/20 text-zinc-100" : "border-zinc-850 hover:border-zinc-750 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200"
+              className={`text-left p-4 rounded-lg border transition-all cursor-pointer flex flex-col gap-2 ${
+                licenseChoice === item.id
+                  ? "border-amber-500 bg-amber-950/25 border-l-[3px] border-l-amber-500 text-zinc-100"
+                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 text-zinc-400 hover:text-zinc-200"
               }`}
             >
               <div className="flex items-center justify-between w-full">
-                <span className="text-xs font-black uppercase tracking-tight text-zinc-150">{item.title}</span>
-                <span className={`text-[8px] font-mono tracking-wider font-bold uppercase ${licenseChoice === item.id ? "text-amber-500" : "text-zinc-600"}`}>{item.meta}</span>
+                <span className="text-sm font-bold">{item.title}</span>
+                <span className={`text-[10px] font-mono font-bold ${licenseChoice === item.id ? "text-amber-400" : "text-zinc-600"}`}>{item.meta}</span>
               </div>
-              <p className="text-[11px] text-zinc-500 leading-relaxed font-sans">{item.desc}</p>
+              <p className="text-xs text-zinc-500 leading-relaxed font-sans">{item.desc}</p>
             </button>
           ))}
         </div>
         {!showLicenseCustom ? (
-          <button onClick={() => setShowLicenseCustom(true)} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-550 hover:text-amber-400 transition-colors cursor-pointer ml-1">
-            <Plus className="w-3 h-3" /> <span>添加自定义合规说明</span>
+          <button onClick={() => setShowLicenseCustom(true)} className="flex items-center gap-1.5 text-xs font-sans text-zinc-500 hover:text-amber-400 transition-colors cursor-pointer ml-1">
+            <Plus className="w-3 h-3" /> 补充合规要求
           </button>
         ) : (
           <div className="space-y-1.5">
-            <button onClick={() => { setShowLicenseCustom(false); dispatch({ type: "SET_LICENSE_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
-              <Pencil className="w-3 h-3" /> <span>收起自定义</span>
+            <button onClick={() => { setShowLicenseCustom(false); dispatch({ type: "SET_LICENSE_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-xs font-sans text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer">
+              <Pencil className="w-3 h-3" /> 收起
             </button>
-            <CustomInput value={licenseCustom} onChange={(v) => dispatch({ type: "SET_LICENSE_CUSTOM", payload: v })} placeholder="例如：我们公司有法务团队，允许 LGPL 动态链接，但任何 copyleft 代码必须放在独立微服务里..." />
+            <CustomInput value={licenseCustom} onChange={(v) => dispatch({ type: "SET_LICENSE_CUSTOM", payload: v })} placeholder="比如：公司法务要求所有 copyleft 代码必须放在独立微服务里，主代码库只能用 MIT/Apache-2.0..." />
           </div>
         )}
       </div>
 
       {/* Q5: Target Goal */}
-      <div className="space-y-3 pt-1">
-        <label className="text-xs font-black font-mono text-amber-500 uppercase tracking-widest flex items-center gap-2">
-          <Network className="w-4 h-4 text-zinc-500" /> <span>5. 业务合流与架构重构总要求叙述：</span>
+      <div className="space-y-3">
+        <label className="text-sm font-bold text-white flex items-center gap-2">
+          <Network className="w-4 h-4 text-amber-400" /> 5. 描述一下你最终想要的产品
         </label>
+        <p className="text-xs text-zinc-500 -mt-1">把 A 仓库的某功能和 B 仓库的某功能结合起来，变成一个什么产品？越具体越好。</p>
         <textarea
           rows={4}
-          placeholder="在此细化您的架构组网逻辑（例如：将 A 仓库的 markdown 实时渲染编译器，深度挂接在 B 仓库的多端在线设计画布组件之内，支持对画布绘制内容进行文本级大模型研判纠错，并自动使用 C 仓库的 SQLite 控制套做本地落页存储。）"
+          placeholder="比如：把 A 仓库的 Markdown 编辑器，和 B 仓库的在线画板拼在一起，让用户在画板上写文档时能实时 AI 纠错，内容自动存到 C 仓库的本地数据库里。"
           value={targetGoal}
           onChange={(e) => dispatch({ type: "SET_TARGET_GOAL", payload: e.target.value })}
-          className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 text-zinc-250 p-4 rounded-none text-xs placeholder:text-zinc-750 focus:outline-none transition-colors font-sans leading-relaxed min-h-[120px]"
+          className="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 text-zinc-200 p-4 rounded-lg text-sm placeholder:text-zinc-600 focus:outline-none transition-colors font-sans leading-relaxed min-h-[120px]"
         />
       </div>
 
       {/* Navigation */}
-      <div className="pt-6 flex items-center justify-between border-t border-zinc-805">
+      <div className="pt-4 flex items-center justify-between border-t border-zinc-800">
         <button
           onClick={() => dispatch({ type: "SET_STEP", payload: 1 })}
-          className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest font-black text-zinc-550 hover:text-zinc-300 transition-colors h-10 px-4 whitespace-nowrap cursor-pointer"
+          className="flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 transition-colors h-10 px-3 cursor-pointer"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>返回编辑物料仓</span>
+          <ArrowLeft className="w-4 h-4" />
+          <span>返回</span>
         </button>
 
         <button
           onClick={() => dispatch({ type: "SET_STEP", payload: 3 })}
-          className="bg-zinc-105 hover:bg-amber-500 text-zinc-950 px-8 py-3.5 rounded-none font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer border border-zinc-800"
+          className="bg-amber-500 hover:bg-amber-400 text-zinc-950 px-6 py-3 rounded-lg font-bold text-sm flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/20"
         >
           <Terminal className="w-4 h-4" />
-          <span>唤醒合冶重构熔炉</span>
+          <span>开始分析，生成方案</span>
         </button>
       </div>
     </div>
