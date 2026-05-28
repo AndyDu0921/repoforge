@@ -1,94 +1,175 @@
-# RepoForge - 多仓库融合重塑工作空间
+# RepoForge
 
-RepoForge 是一款专为全栈系统架构师与首席代码架构师设计的**多物理 GitHub 仓库智能聚合合冶研判与提示词工程编排器**。产品完全基于 **DeepSeek-V4 Pro** 模型语义网络与 **GitHub 实时 Search API** 联动，旨在将多个离散、异构的开源物料一键调配，熔炼出兼顾**合规合规性审查**、**依赖防撞防爆**、**智能缺口补齐**，并自动驱动本地 AI 沙箱（如 Claude Code, Cursor, Windsurf）的标准式 `CLAUDE.md` 开发蓝图。
+**把多个 GitHub 开源项目，组合成一个完整产品。**
+
+[![Deploy](https://img.shields.io/badge/Live-https%3A%2F%2Fdssxhydwp.shop-amber)](https://dssxhydwp.shop)
+[![Stack](https://img.shields.io/badge/Stack-Next.js%2015%20%7C%20React%2019%20%7C%20DeepSeek-black)](https://github.com/AndyDu0921/repoforge)
 
 ---
 
-## 🛠️ V1 版核心架构与流程规范
+## 它能做什么
 
-RepoForge V1 遵循「极致流畅、单屏聚焦、拒绝冗杂」的原则，对系统核心链路进行精简优化，完全砍掉了低实用性、高渲染成本的拓扑图与预设，确保用户每次点击均可实现实存数据的流式运转：
+你找了几个不错的开源仓库，想把它们拼在一起做成一个产品——但不确定哪些功能会冲突、许可证是否兼容、还缺什么模块。
+
+RepoForge 做三件事：
+
+1. **分析**你导入的 GitHub 仓库的结构、依赖、许可证
+2. **找出**功能缺口，并在 GitHub 上实时搜索补充方案
+3. **输出**一份可直接用于 Claude Code / Cursor 的开发文档
+
+整个过程 4 步，1 分钟内出结果。
+
+---
+
+## 演示
+
+线上地址：**[https://dssxhydwp.shop](https://dssxhydwp.shop)**
+
+### 工作流程
 
 ```
-                      [ 前端 RepoForge UI 控制台 ] ── 获取 localStorage 临时 Session 缓存
-                                   │
-              ┌────────────────────┴────────────────────┐
-              ▼ (1. 导入物理物料)                      ▼ (2. 调质问卷参数对齐)
-      - github_pat 输入 (防限限制)              - 产品受众商业化变现模式
-      - 录入多个 GitHub 仓库 (README, 依赖)     - 偏好技术栈底盘 (如 Next.js/Go/Python)
-              │                                         │
-              └────────────────────┬────────────────────┘
-                                   ▼
-                      [ Node.js API 业务熔炼引擎 ] ── 注入 DeepSeek V4 API Keys 授权
-                                   │
-         ┌─────────────────────────┼─────────────────────────┐
-         ▼                         ▼                         ▼
-  [ 依赖/版本碰撞防爆 ]      [ 许可证合规隔离研判 ]     [ 智能空缺识别语义生成 ]
-  比对 package.json          严格审查传染性协议         分析系统功能性缺失拼图
-  提取微观兼容性             (如 AGPL 隔离规避方案)             │
-         │                         │                         │
-         └─────────────────────────┼─────────────────────────┘
-                                   ▼
-                     [ GitHub Search API 实时联动 ]
-                     根据缺口语义生成 2-3 个检索词
-                     实时捞取全球高赞实存连接件，按 Stars 排序
-                                   │
-                                   ▼
-                     [ 格式化提示词工程编排器 ]
-               拼合拼装极高自动操控力的 CLAUDE.md 规范
+① 导入仓库 ──→ ② 设置偏好 ──→ ③ AI 分析(流式) ──→ ④ 查看方案
+  粘贴 GitHub      选择受众/商业      实时读取仓库       架构+缺口+许可证
+  URL 即可         模式/技术栈        生成评估方案        导出CLAUDE.md
+```
+
+### Step 4 输出内容
+
+| 面板 | 内容 |
+|------|------|
+| **技术架构** | 每个仓库被分配什么角色，模块之间怎么协作 |
+| **能力检查** | 缺什么功能，GitHub 上匹配到的真实项目推荐 |
+| **许可证** | 开源协议冲突检测 + 规避建议 |
+| **开发文档** | 可直接复制给 Claude Code / Cursor 的完整开发指南 |
+| **方案评级** | S/A/B/C 综合评分 + 风险警告 + 优点总结 |
+
+---
+
+## 技术栈
+
+| 层 | 技术 |
+|----|------|
+| **前端** | Next.js 15 (App Router) + React 19 + Tailwind CSS 4 |
+| **动画** | Motion (Framer Motion) |
+| **图标** | Lucide React |
+| **AI 引擎** | DeepSeek Chat API (`deepseek-chat`) |
+| **数据源** | GitHub REST API + GitHub Search API |
+| **流式传输** | Server-Sent Events (SSE) |
+| **部署** | Cloudflare Pages + GitHub Actions CI/CD |
+| **运行时** | Edge Runtime (Cloudflare Workers) |
+
+---
+
+## 项目结构
+
+```
+repoforge/
+├── app/
+│   ├── api/
+│   │   └── repo-analyze/
+│   │       ├── route.ts              # 标准 API 端点
+│   │       └── stream/
+│   │           └── route.ts          # SSE 流式端点
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx                       # 主页面容器
+├── components/
+│   ├── blueprint/
+│   │   ├── architecture-panel.tsx     # 技术架构面板
+│   │   ├── claude-prompt-panel.tsx    # 开发文档面板
+│   │   ├── gaps-panel.tsx             # 能力缺口面板
+│   │   ├── harmony-panel.tsx          # 许可证检查面板
+│   │   └── v2-backlog-panel.tsx       # 未来计划面板
+│   ├── steps/
+│   │   ├── step1-materials.tsx        # 步骤1：导入仓库
+│   │   ├── step2-alignment.tsx        # 步骤2：设置偏好
+│   │   ├── step3-smelting.tsx         # 步骤3：AI 分析
+│   │   └── step4-blueprint.tsx        # 步骤4：查看方案
+│   └── ui/
+│       ├── header.tsx
+│       ├── settings-panel.tsx
+│       └── stepper.tsx
+├── hooks/
+│   ├── use-mobile.ts
+│   └── use-repo-forge-state.tsx       # 全局状态管理
+├── lib/
+│   ├── deepseek.ts                    # DeepSeek API 封装
+│   ├── download-report.ts             # 方案导出
+│   ├── gap-search.ts                  # GitHub Search 封装
+│   ├── github.ts                      # GitHub API 封装
+│   ├── state-persistence.ts           # localStorage 持久化
+│   └── utils.ts
+├── .github/workflows/deploy.yml       # CI/CD
+├── wrangler.toml                      # Cloudflare 配置
+├── next.config.ts
+├── package.json
+└── tsconfig.json
 ```
 
 ---
 
-## 💎 四大核心产品功能 (Feature Set)
+## 快速开始
 
-1. **多物理存储库原料装载器 (Ingestion Hub)**:
-   - 全量支持任意 GitHub 物理地址，在配置了 GitHub PAT 授权后，高频读取存储库元数据与 README 大块摘要，生成微观期望定位备注。
-   
-2. **多维受众调质对齐 (Alignment Panel)**:
-   - 包含受众群体（Saas、内网、极客）、商业变现手段、开源许可证考量、以及最关键的**核心技术栈底牌偏好（防止 AI 在缺口推算时做盲盒假设）**。
-   
-3. **安全规避与智能缺口实时雷达 (Gaps & Real-time Solvers)**:
-   - 提取空缺关键词，后台**直接调用 live Git API 搜寻当前存活的高星/适配项目**做方案对齐。
-   - 审查所引入物料的开源许可证是否具备传染风险，就特定许可证（如 GPL）提供隔离手段，保护企业产权闭源。
-
-4. **Claude Code 标准驱动级提示词工坊 (CLAUDE.md Output)**:
-   - 格式完全对标 CLAUDE.md，包含架构总设、依赖协调方案、最终项目整体目录树、环境变量、以及第一步自动化拉取编译指令。
-
----
-
-## 🚀 快速启动
-
-### 🔑 必要凭证配置
-
-启动前请在项目根目录创建 `.env.local` 文件，并配置以下环境变量：
+### 1. 克隆 & 安装
 
 ```bash
-# DeepSeek API Key (必填)
-DEEPSEEK_API_KEY=sk-your-deepseek-key
-
-# GitHub Personal Access Token (必填，用于提升 API 速率上限)
-GITHUB_TOKEN=ghp_your-github-pat
-```
-
-> 未配置令牌将导致 API 调用受限。GitHub 匿名请求每小时仅 60 次，认证后可提升至 5000 次。
-
-### 📦 运行研发命令
-
-```bash
-# 1. 安装核心依赖
+git clone https://github.com/AndyDu0921/repoforge.git
+cd repoforge
 npm install
+```
 
-# 2. 启动本地研发容器 (Port 3000)
+### 2. 配置环境变量
+
+创建 `.env.local`：
+
+```bash
+DEEPSEEK_API_KEY=sk-your-deepseek-api-key
+# GitHub Token 可选，在应用的设置面板中填写即可
+```
+
+### 3. 启动
+
+```bash
 npm run dev
-
-# 3. 生产打包编译
-npm run build
+# 打开 http://localhost:3000
 ```
 
 ---
 
-## 🧩 未来待办规范 (V2 Roadmap)
+## 配置项
 
-- **SaaS 快速预设包 (Preset Pack)**: 分发常用的全套预设（如支付、OAuth 登录等）。
-- **多账号持久化多级认证**: 引入真正的 Session 数据库云级对齐。
-- **动态 WebSockets / SSE 熔解流式控制台**: 实时直观呈现依赖编译的大图日志流。
+| 环境变量 | 必填 | 说明 |
+|----------|------|------|
+| `DEEPSEEK_API_KEY` | 是 | DeepSeek API Key，从 [platform.deepseek.com](https://platform.deepseek.com) 获取 |
+| `GITHUB_TOKEN` | 否 | GitHub Personal Access Token，提升 API 限流上限（无需任何权限） |
+
+GitHub Token 也可以在应用界面的「设置 Token」中直接填写（保存在浏览器 localStorage 中）。
+
+---
+
+## 部署
+
+本项目部署在 Cloudflare Pages 上，每次 push 到 `main` 分支自动触发部署。
+
+### 自部署
+
+1. Fork 本仓库
+2. 在 Cloudflare Pages 中连接你的 Fork
+3. 设置环境变量 `DEEPSEEK_API_KEY`
+4. 构建命令：`npx @cloudflare/next-on-pages`
+5. 输出目录：`.vercel/output/static`
+
+---
+
+## 许可证
+
+MIT © 2026 AndyDu0921
+
+---
+
+## 致谢
+
+- [DeepSeek](https://deepseek.com) — AI 语义分析引擎
+- [Vercel AI SDK](https://github.com/vercel/ai) — 默认示例仓库
+- [shadcn/ui](https://github.com/shadcn-ui/ui) — 默认示例仓库
+- [Cloudflare](https://cloudflare.com) — 托管 & 部署
