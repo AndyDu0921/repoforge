@@ -12,7 +12,7 @@ function resolveTechLabel(pref: string): string {
 }
 
 export default function Step3Smelting() {
-  const { repos, audience, commercial, licenseChoice, techPreference, targetGoal, githubPat, smeltingLogs, smeltingProgress, apiError } = useRepoForgeState();
+  const { repos, audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference, techCustom, targetGoal, githubPat, smeltingLogs, smeltingProgress, apiError } = useRepoForgeState();
   const dispatch = useRepoForgeDispatch();
   const abortRef = useRef<AbortController | null>(null);
 
@@ -42,9 +42,13 @@ export default function Step3Smelting() {
           repos: repos.map((r) => ({ owner: r.owner, repo: r.repo, userNotes: r.userNotes })),
           dialogueAnswers: {
             audience,
+            audienceCustom,
             commercial,
+            commercialCustom,
             licenseChoice,
+            licenseCustom,
             techPreference: resolveTechLabel(techPreference),
+            techCustom,
             targetGoal,
           },
           customToken: githubPat || undefined,

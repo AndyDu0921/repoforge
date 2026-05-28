@@ -26,9 +26,13 @@ export interface RepoForgeState {
   githubPat: string;
   showSettings: boolean;
   audience: Audience;
+  audienceCustom: string;
   commercial: Commercial;
+  commercialCustom: string;
   licenseChoice: LicenseChoice;
+  licenseCustom: string;
   techPreference: string;
+  techCustom: string;
   targetGoal: string;
   smeltingLogs: string[];
   smeltingProgress: number;
@@ -51,6 +55,10 @@ export type RepoForgeAction =
   | { type: "SET_COMMERCIAL"; payload: Commercial }
   | { type: "SET_LICENSE_CHOICE"; payload: LicenseChoice }
   | { type: "SET_TECH_PREFERENCE"; payload: string }
+  | { type: "SET_AUDIENCE_CUSTOM"; payload: string }
+  | { type: "SET_COMMERCIAL_CUSTOM"; payload: string }
+  | { type: "SET_LICENSE_CUSTOM"; payload: string }
+  | { type: "SET_TECH_CUSTOM"; payload: string }
   | { type: "SET_TARGET_GOAL"; payload: string }
   | { type: "APPEND_SMELTING_LOG"; payload: string }
   | { type: "SET_SMELTING_PROGRESS"; payload: number }
@@ -74,9 +82,13 @@ const initialState: RepoForgeState = {
   githubPat: "",
   showSettings: false,
   audience: "saas",
+  audienceCustom: "",
   commercial: "subscription",
+  commercialCustom: "",
   licenseChoice: "strict",
+  licenseCustom: "",
   techPreference: "typescript-next",
+  techCustom: "",
   targetGoal: "构建一个支持 AI 交互、基于 Stripe 订阅、具备高阶仪表盘统计的现代化全栈 SaaS 平台。",
   smeltingLogs: [],
   smeltingProgress: 0,
@@ -110,6 +122,14 @@ function reducer(state: RepoForgeState, action: RepoForgeAction): RepoForgeState
       return { ...state, licenseChoice: action.payload };
     case "SET_TECH_PREFERENCE":
       return { ...state, techPreference: action.payload };
+    case "SET_AUDIENCE_CUSTOM":
+      return { ...state, audienceCustom: action.payload };
+    case "SET_COMMERCIAL_CUSTOM":
+      return { ...state, commercialCustom: action.payload };
+    case "SET_LICENSE_CUSTOM":
+      return { ...state, licenseCustom: action.payload };
+    case "SET_TECH_CUSTOM":
+      return { ...state, techCustom: action.payload };
     case "SET_TARGET_GOAL":
       return { ...state, targetGoal: action.payload };
     case "APPEND_SMELTING_LOG":

@@ -1,11 +1,29 @@
 "use client";
 
-import { Users, DollarSign, Code, FileText, Network, ArrowLeft, Terminal } from "lucide-react";
+import { useState } from "react";
+import { Users, DollarSign, Code, FileText, Network, ArrowLeft, Terminal, Plus, Pencil } from "lucide-react";
 import { useRepoForgeState, useRepoForgeDispatch, type Audience, type Commercial, type LicenseChoice } from "@/hooks/use-repo-forge-state";
 
+function CustomInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <textarea
+      rows={2}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full bg-zinc-950 border border-zinc-800 focus:border-amber-500/50 text-zinc-300 p-3 rounded-none text-xs placeholder:text-zinc-650 focus:outline-none transition-colors font-sans leading-relaxed mt-3"
+    />
+  );
+}
+
 export default function Step2Alignment() {
-  const { audience, commercial, techPreference, licenseChoice, targetGoal } = useRepoForgeState();
+  const { audience, audienceCustom, commercial, commercialCustom, techPreference, techCustom, licenseChoice, licenseCustom, targetGoal } = useRepoForgeState();
   const dispatch = useRepoForgeDispatch();
+
+  const [showAudienceCustom, setShowAudienceCustom] = useState(!!audienceCustom);
+  const [showCommercialCustom, setShowCommercialCustom] = useState(!!commercialCustom);
+  const [showTechCustom, setShowTechCustom] = useState(!!techCustom);
+  const [showLicenseCustom, setShowLicenseCustom] = useState(!!licenseCustom);
 
   return (
     <div className="max-w-4xl mx-auto bg-zinc-900/10 border border-zinc-850 rounded-none p-8 space-y-10 group relative">
@@ -17,7 +35,7 @@ export default function Step2Alignment() {
           调配熔炼系统的定位参数对齐
         </h2>
         <p className="text-xs text-zinc-400 leading-relaxed font-sans">
-          在下发 DeepSeek 熔炉进行合炉研发之前，请对齐产品受众面、付费意图、最关键的技术底板以及开源合规限制。
+          在下方预设选项中快速对齐，或点击「+ 自定义」为每个维度补充你的独立构思与额外要求。DeepSeek 熔炉会综合考虑预设选项与自定义输入。
         </p>
       </div>
 
@@ -47,6 +65,18 @@ export default function Step2Alignment() {
             </button>
           ))}
         </div>
+        {!showAudienceCustom ? (
+          <button onClick={() => setShowAudienceCustom(true)} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-550 hover:text-amber-400 transition-colors cursor-pointer ml-1">
+            <Plus className="w-3 h-3" /> <span>添加自定义补充说明</span>
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            <button onClick={() => { setShowAudienceCustom(false); dispatch({ type: "SET_AUDIENCE_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
+              <Pencil className="w-3 h-3" /> <span>收起自定义</span>
+            </button>
+            <CustomInput value={audienceCustom} onChange={(v) => dispatch({ type: "SET_AUDIENCE_CUSTOM", payload: v })} placeholder="例如：面向海外留学生的学术写作辅助平台，需支持多语言、移动端优先..." />
+          </div>
+        )}
       </div>
 
       {/* Q2: Commercial */}
@@ -75,6 +105,18 @@ export default function Step2Alignment() {
             </button>
           ))}
         </div>
+        {!showCommercialCustom ? (
+          <button onClick={() => setShowCommercialCustom(true)} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-550 hover:text-amber-400 transition-colors cursor-pointer ml-1">
+            <Plus className="w-3 h-3" /> <span>添加自定义补充说明</span>
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            <button onClick={() => { setShowCommercialCustom(false); dispatch({ type: "SET_COMMERCIAL_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
+              <Pencil className="w-3 h-3" /> <span>收起自定义</span>
+            </button>
+            <CustomInput value={commercialCustom} onChange={(v) => dispatch({ type: "SET_COMMERCIAL_CUSTOM", payload: v })} placeholder="例如：基础功能免费开源，高级 AI 功能按 token 计费，企业版支持私有部署授权..." />
+          </div>
+        )}
       </div>
 
       {/* Q3: Tech Stack */}
@@ -106,6 +148,18 @@ export default function Step2Alignment() {
             </button>
           ))}
         </div>
+        {!showTechCustom ? (
+          <button onClick={() => setShowTechCustom(true)} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-550 hover:text-amber-400 transition-colors cursor-pointer ml-1">
+            <Plus className="w-3 h-3" /> <span>添加自定义技术栈需求</span>
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            <button onClick={() => { setShowTechCustom(false); dispatch({ type: "SET_TECH_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
+              <Pencil className="w-3 h-3" /> <span>收起自定义</span>
+            </button>
+            <CustomInput value={techCustom} onChange={(v) => dispatch({ type: "SET_TECH_CUSTOM", payload: v })} placeholder="例如：前端必须用 React，后端无偏好，但数据库必须用 PostgreSQL + Redis 缓存层，ORM 用 Drizzle..." />
+          </div>
+        )}
       </div>
 
       {/* Q4: License */}
@@ -134,6 +188,18 @@ export default function Step2Alignment() {
             </button>
           ))}
         </div>
+        {!showLicenseCustom ? (
+          <button onClick={() => setShowLicenseCustom(true)} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-550 hover:text-amber-400 transition-colors cursor-pointer ml-1">
+            <Plus className="w-3 h-3" /> <span>添加自定义合规说明</span>
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            <button onClick={() => { setShowLicenseCustom(false); dispatch({ type: "SET_LICENSE_CUSTOM", payload: "" }); }} className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer">
+              <Pencil className="w-3 h-3" /> <span>收起自定义</span>
+            </button>
+            <CustomInput value={licenseCustom} onChange={(v) => dispatch({ type: "SET_LICENSE_CUSTOM", payload: v })} placeholder="例如：我们公司有法务团队，允许 LGPL 动态链接，但任何 copyleft 代码必须放在独立微服务里..." />
+          </div>
+        )}
       </div>
 
       {/* Q5: Target Goal */}
@@ -142,11 +208,11 @@ export default function Step2Alignment() {
           <Network className="w-4 h-4 text-zinc-500" /> <span>5. 业务合流与架构重构总要求叙述：</span>
         </label>
         <textarea
-          rows={3}
-          placeholder="在此细化您的架构组网逻辑..."
+          rows={4}
+          placeholder="在此细化您的架构组网逻辑（例如：将 A 仓库的 markdown 实时渲染编译器，深度挂接在 B 仓库的多端在线设计画布组件之内，支持对画布绘制内容进行文本级大模型研判纠错，并自动使用 C 仓库的 SQLite 控制套做本地落页存储。）"
           value={targetGoal}
           onChange={(e) => dispatch({ type: "SET_TARGET_GOAL", payload: e.target.value })}
-          className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 text-zinc-250 p-4 rounded-none text-xs placeholder:text-zinc-750 focus:outline-none transition-colors font-sans leading-relaxed min-h-[100px]"
+          className="w-full bg-zinc-950 border border-zinc-850 focus:border-amber-500 text-zinc-250 p-4 rounded-none text-xs placeholder:text-zinc-750 focus:outline-none transition-colors font-sans leading-relaxed min-h-[120px]"
         />
       </div>
 

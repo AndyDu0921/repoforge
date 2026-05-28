@@ -18,14 +18,7 @@ export async function POST(req: NextRequest) {
     }
 
     const githubToken = customToken || process.env.GITHUB_TOKEN || "";
-    const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "";
-
-    if (!deepseekApiKey) {
-      return NextResponse.json(
-        { error: "服务端未配置 DEEPSEEK_API_KEY 环境变量。" },
-        { status: 500 }
-      );
-    }
+    const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "YOUR_DEEPSEEK_API_KEY";
 
     // 1. Fetch all repo metadata in parallel
     const fetchedRepos: FetchedRepo[] = [];
@@ -52,9 +45,13 @@ export async function POST(req: NextRequest) {
     // 2. Call DeepSeek for semantic analysis
     const answers = {
       audience: dialogueAnswers?.audience || "saas",
+      audienceCustom: dialogueAnswers?.audienceCustom || "",
       commercial: dialogueAnswers?.commercial || "subscription",
+      commercialCustom: dialogueAnswers?.commercialCustom || "",
       licenseChoice: dialogueAnswers?.licenseChoice || "strict",
+      licenseCustom: dialogueAnswers?.licenseCustom || "",
       techPreference: dialogueAnswers?.techPreference || "Pure TypeScript (Next.js / Tailwind)",
+      techCustom: dialogueAnswers?.techCustom || "",
       targetGoal: dialogueAnswers?.targetGoal || "打造一个高度整合的全栈平台",
     };
 

@@ -4,9 +4,13 @@
 
 export interface DialogueAnswers {
   audience: string;
+  audienceCustom: string;
   commercial: string;
+  commercialCustom: string;
   licenseChoice: string;
+  licenseCustom: string;
   techPreference: string;
+  techCustom: string;
   targetGoal: string;
 }
 
@@ -44,7 +48,14 @@ ${r.readme}
 }
 
 function buildSystemPrompt(answers: DialogueAnswers): string {
-  const { audience, commercial, licenseChoice, techPreference, targetGoal } = answers;
+  const { audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference, techCustom, targetGoal } = answers;
+
+  const customContext = [
+    audienceCustom && `目标受众补充论述: ${audienceCustom}`,
+    commercialCustom && `商业模式补充论述: ${commercialCustom}`,
+    techCustom && `技术栈补充要求: ${techCustom}`,
+    licenseCustom && `许可证补充说明: ${licenseCustom}`,
+  ].filter(Boolean).join("\n");
 
   return `
 你是一位享誉全球的传奇全栈系统架构师与首席代码架构师，专精于将多个离散、去中心化的开源 GitHub 仓库融合重组为高内聚、高生产力、高性能的综合产品线。
@@ -56,6 +67,7 @@ function buildSystemPrompt(answers: DialogueAnswers): string {
 - 商业化/付费定位: ${commercial}
 - 开源许可证约束方针: ${licenseChoice}
 - 偏好技术栈底盘: ${techPreference}
+${customContext ? `\n--- 用户自定义补充要求 (优先级高于上述预设) ---\n${customContext}\n` : ""}
 
 你必须通过返回规范、合法的 JSON 对象向调用端回传数据。
 

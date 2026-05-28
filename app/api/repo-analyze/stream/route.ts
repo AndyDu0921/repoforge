@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const { repos, dialogueAnswers, customToken } = body;
 
   const githubToken = customToken || process.env.GITHUB_TOKEN || "";
-  const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "";
+  const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "YOUR_DEEPSEEK_API_KEY";
 
   const encoder = new TextEncoder();
 
@@ -27,12 +27,6 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         // Validate
-        if (!deepseekApiKey) {
-          sendEvent(controller, encoder, "error", { message: "服务端未配置 DEEPSEEK_API_KEY 环境变量。" });
-          controller.close();
-          return;
-        }
-
         if (!repos || !Array.isArray(repos) || repos.length === 0) {
           sendEvent(controller, encoder, "error", { message: "至少需要导入一个 GitHub 仓库作为源材料。" });
           controller.close();
@@ -84,9 +78,13 @@ export async function POST(req: NextRequest) {
 
         const answers = {
           audience: dialogueAnswers?.audience || "saas",
+          audienceCustom: dialogueAnswers?.audienceCustom || "",
           commercial: dialogueAnswers?.commercial || "subscription",
+          commercialCustom: dialogueAnswers?.commercialCustom || "",
           licenseChoice: dialogueAnswers?.licenseChoice || "strict",
+          licenseCustom: dialogueAnswers?.licenseCustom || "",
           techPreference: dialogueAnswers?.techPreference || "Pure TypeScript (Next.js / Tailwind)",
+          techCustom: dialogueAnswers?.techCustom || "",
           targetGoal: dialogueAnswers?.targetGoal || "打造一个高度整合的全栈平台",
         };
 
