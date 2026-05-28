@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
-import { Cpu, AlertTriangle, RefreshCw } from "lucide-react";
+import { useEffect, useCallback, useRef, useState } from "react";
+import { Cpu, AlertTriangle, RefreshCw, XCircle } from "lucide-react";
 import { useRepoForgeState, useRepoForgeDispatch } from "@/hooks/use-repo-forge-state";
+import { clearState } from "@/lib/state-persistence";
 
 function resolveTechLabel(pref: string): string {
   if (pref === "typescript-next") return "Pure TypeScript (Next.js / Tailwind)";
@@ -15,6 +16,9 @@ export default function Step3Smelting() {
   const { repos, audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference, techCustom, targetGoal, githubPat, smeltingLogs, smeltingProgress, apiError } = useRepoForgeState();
   const dispatch = useRepoForgeDispatch();
   const abortRef = useRef<AbortController | null>(null);
+  const [started, setStarted] = useState(false);
+
+  const isResumed = smeltingLogs.length > 0 && !started;
 
   const appendLog = useCallback(
     (msg: string, progress: number) => {
@@ -24,9 +28,28 @@ export default function Step3Smelting() {
     [dispatch]
   );
 
+  const callDirectApi = useCallback(async () => {
+    const techLabel = resolveTechLabel(techPreference);
+    const res = await fetch("/api/repo-analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        repos: repos.map((r) => ({ owner: r.owner, repo: r.repo, userNotes: r.userNotes })),
+        dialogueAnswers: { audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference: techLabel, techCustom, targetGoal },
+        customToken: githubPat || undefined,
+      }),
+    });
+    if (!res.ok) throw new Error("分析服务暂不可用。");
+    const data = await res.json();
+    dispatch({ type: "SET_SMELTING_PROGRESS", payload: 100 });
+    dispatch({ type: "SET_BLUEPRINT_RESULT", payload: data.data });
+    dispatch({ type: "SET_STEP", payload: 4 });
+  }, [repos, audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference, techCustom, targetGoal, githubPat, dispatch]);
+
   const runSmelting = useCallback(async () => {
     dispatch({ type: "RESET_SMELTING" });
     dispatch({ type: "SET_STEP", payload: 3 });
+    setStarted(true);
 
     appendLog("正在启动分析引擎...", 5);
     appendLog("已读取你的项目配置。", 10);
@@ -35,30 +58,21 @@ export default function Step3Smelting() {
     abortRef.current = abort;
 
     try {
+      // Use SSE with 90-second timeout
       const response = await fetch("/api/repo-analyze/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           repos: repos.map((r) => ({ owner: r.owner, repo: r.repo, userNotes: r.userNotes })),
-          dialogueAnswers: {
-            audience,
-            audienceCustom,
-            commercial,
-            commercialCustom,
-            licenseChoice,
-            licenseCustom,
-            techPreference: resolveTechLabel(techPreference),
-            techCustom,
-            targetGoal,
-          },
+          dialogueAnswers: { audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference: resolveTechLabel(techPreference), techCustom, targetGoal },
           customToken: githubPat || undefined,
         }),
-        signal: abort.signal,
+        signal: AbortSignal.timeout(90000),
       });
 
       if (!response.ok) {
         const err = await response.json().catch(() => null);
-        throw new Error(err?.error || "分析服务暂不可用，请稍后重试。");
+        throw new Error(err?.error || "服务暂不可用。");
       }
 
       const reader = response.body?.getReader();
@@ -66,15 +80,13 @@ export default function Step3Smelting() {
 
       const decoder = new TextDecoder();
       let buffer = "";
-
       let gotResult = false;
       let streamDone = false;
+
       while (!streamDone) {
         const { done, value } = await reader.read();
         streamDone = done;
-        if (value) {
-          buffer += decoder.decode(value, { stream: true });
-        }
+        if (value) buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
         buffer = streamDone ? "" : lines.pop() || "";
 
@@ -83,69 +95,42 @@ export default function Step3Smelting() {
           if (line.startsWith("event: ")) {
             currentEvent = line.slice(7).trim();
           } else if (line.startsWith("data: ")) {
-            const raw = line.slice(6);
             try {
-              const parsed = JSON.parse(raw);
-              handleSSEEvent(currentEvent, parsed);
-              if (currentEvent === "result") gotResult = true;
-            } catch { /* skip */ }
+              const parsed = JSON.parse(line.slice(6));
+              if (currentEvent === "stage") appendLog(parsed.message, parsed.progress);
+              else if (currentEvent === "result") { gotResult = true; dispatch({ type: "SET_SMELTING_PROGRESS", payload: 100 }); dispatch({ type: "SET_BLUEPRINT_RESULT", payload: parsed.data }); dispatch({ type: "SET_STEP", payload: 4 }); }
+              else if (currentEvent === "error") dispatch({ type: "SET_API_ERROR", payload: parsed.message });
+            } catch { /* skip broken JSON chunks */ }
           }
         }
       }
 
-      // Fallback: if SSE parsing missed the result event, fetch directly
-      if (!gotResult) {
-        const techLabel = techPreference === "typescript-next" ? "Pure TypeScript (Next.js / Tailwind)" :
-          techPreference === "python-ai" ? "Python AI Backend (FastAPI + React)" :
-          techPreference === "go-rust" ? "Go/Rust High Performance backend stack" :
-          "Container Docker Agnostic microservices mesh";
-
-        const fallbackRes = await fetch("/api/repo-analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            repos: repos.map((r) => ({ owner: r.owner, repo: r.repo, userNotes: r.userNotes })),
-            dialogueAnswers: { audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference: techLabel, techCustom, targetGoal },
-            customToken: githubPat || undefined,
-          }),
-        });
-
-        if (fallbackRes.ok) {
-          const fallbackData = await fallbackRes.json();
-          dispatch({ type: "SET_SMELTING_PROGRESS", payload: 100 });
-          dispatch({ type: "SET_BLUEPRINT_RESULT", payload: fallbackData.data });
-          dispatch({ type: "SET_STEP", payload: 4 });
-        } else {
-          throw new Error("分析服务暂不可用。");
-        }
-      }
+      // SSE stream ended without result — fallback to direct API
+      if (!gotResult) await callDirectApi();
     } catch (err: any) {
-      if (err.name === "AbortError") return;
-      dispatch({
-        type: "SET_API_ERROR",
-        payload: err.message || "分析出错，请检查网络后重试。",
-      });
+      if (err.name === "AbortError" || err.name === "TimeoutError") {
+        // SSE timed out — try direct API
+        try { await callDirectApi(); } catch (e2: any) { dispatch({ type: "SET_API_ERROR", payload: "分析超时，请重试。" }); }
+        return;
+      }
+      dispatch({ type: "SET_API_ERROR", payload: err.message || "分析出错，请检查网络后重试。" });
     }
-  }, [repos, audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference, techCustom, targetGoal, githubPat, dispatch, appendLog]);
+  }, [repos, audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference, techCustom, targetGoal, githubPat, dispatch, appendLog, callDirectApi]);
 
-  function handleSSEEvent(event: string, data: any) {
-    switch (event) {
-      case "stage":
-        appendLog(data.message, data.progress);
-        break;
-      case "result":
-        dispatch({ type: "SET_SMELTING_PROGRESS", payload: 100 });
-        dispatch({ type: "SET_BLUEPRINT_RESULT", payload: data.data });
-        dispatch({ type: "SET_STEP", payload: 4 });
-        break;
-      case "error":
-        dispatch({ type: "SET_API_ERROR", payload: data.message });
-        break;
-    }
-  }
+  const handleClearAndRestart = () => {
+    clearState();
+    window.location.reload();
+  };
+
+  const handleGoBack = () => {
+    dispatch({ type: "SET_STEP", payload: 1 });
+  };
 
   useEffect(() => {
-    runSmelting();
+    // Only auto-start if not resuming from a previous stuck session
+    if (smeltingLogs.length === 0) {
+      runSmelting();
+    }
     return () => { abortRef.current?.abort(); };
   }, []); // eslint-disable-line
 
@@ -153,55 +138,82 @@ export default function Step3Smelting() {
     <div className="max-w-2xl mx-auto border border-zinc-800 bg-zinc-900/30 rounded-xl p-6 md:p-8 space-y-6 flex flex-col items-center justify-center min-h-[440px] text-center relative overflow-hidden">
       <div className="absolute inset-0 bg-radial-gradient from-amber-500/5 to-transparent pointer-events-none scale-150 animate-pulse duration-[3000ms]" />
 
-      {/* Spinner */}
-      <div className="relative">
-        <div className="w-14 h-14 border-2 border-zinc-700 border-t-amber-500 animate-spin rounded-full shadow-lg" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Cpu className="w-5 h-5 text-amber-400" />
+      {isResumed ? (
+        /* User refreshed while stuck — show resume prompt */
+        <div className="space-y-5 relative z-10">
+          <XCircle className="w-10 h-10 text-zinc-500 mx-auto" />
+          <div className="space-y-2">
+            <h2 className="text-lg font-bold text-white">上次的分析中断了</h2>
+            <p className="text-sm text-zinc-400 max-w-sm mx-auto">
+              这可能是因为网络波动或分析超时。建议清除缓存后重新开始。
+            </p>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <button onClick={handleClearAndRestart} className="bg-amber-500 hover:bg-amber-400 text-zinc-950 px-5 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 cursor-pointer shadow-lg shadow-amber-500/20">
+              <RefreshCw className="w-4 h-4" /> 清除缓存，重新开始
+            </button>
+            <button onClick={handleGoBack} className="border border-zinc-700 hover:border-zinc-600 text-zinc-300 px-5 py-2.5 rounded-lg text-sm font-medium cursor-pointer">
+              返回上一步
+            </button>
+          </div>
+          <div className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-4 text-left font-mono text-xs text-zinc-500 space-y-1 h-32 overflow-y-auto">
+            <div className="text-zinc-600 border-b border-zinc-800 pb-2 mb-2 flex items-center justify-between font-bold">
+              <span>之前的分析日志</span>
+            </div>
+            {smeltingLogs.map((log, idx) => (
+              <p key={idx}>❯ {log}</p>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="space-y-2 relative z-10">
-        <span className="text-xs font-bold text-amber-400 font-mono animate-pulse">
-          {smeltingProgress}%
-        </span>
-        <h2 className="text-xl font-bold text-white">AI 正在分析你的项目组合</h2>
-        <p className="text-sm text-zinc-400 max-w-sm mx-auto leading-relaxed">
-          读取仓库信息、分析依赖关系、检测潜在问题、搜索补充组件...
-        </p>
-      </div>
-
-      {/* Log console */}
-      <div className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-4 text-left font-mono text-xs text-zinc-400 space-y-1.5 h-44 overflow-y-auto relative z-10">
-        <div className="text-zinc-600 border-b border-zinc-800 pb-2 mb-2 flex items-center justify-between font-bold">
-          <span>分析日志</span>
-          <span className="animate-pulse w-2 h-2 rounded-full bg-green-500" />
-        </div>
-        {smeltingLogs.map((log, idx) => (
-          <p key={idx} className="text-zinc-500 transition-colors">
-            <span className="text-amber-500">❯</span> {log}
-          </p>
-        ))}
-      </div>
-
-      {apiError && (
-        <div className="bg-red-950/15 border border-red-900/30 p-5 rounded-lg text-left text-sm space-y-3 w-full">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-red-400">分析中断</p>
-              <p className="text-zinc-400 text-xs mt-1">{apiError}</p>
+      ) : (
+        <>
+          {/* Spinner */}
+          <div className="relative">
+            <div className="w-14 h-14 border-2 border-zinc-700 border-t-amber-500 animate-spin rounded-full shadow-lg" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Cpu className="w-5 h-5 text-amber-400" />
             </div>
           </div>
-          <div className="flex gap-2 pt-2 border-t border-red-900/15">
-            <button onClick={runSmelting} className="bg-red-950/30 hover:bg-red-900/20 text-red-300 font-bold px-4 py-2 border border-red-800 rounded-lg cursor-pointer text-xs flex items-center gap-1.5 transition-colors">
-              <RefreshCw className="w-3 h-3" /> 重试
-            </button>
-            <button onClick={() => dispatch({ type: "SET_STEP", payload: 2 })} className="bg-zinc-900 hover:bg-zinc-800 text-zinc-300 px-4 py-2 border border-zinc-700 rounded-lg cursor-pointer text-xs transition-colors">
-              返回修改设置
-            </button>
+
+          <div className="space-y-2 relative z-10">
+            <span className="text-xs font-bold text-amber-400 font-mono animate-pulse">{smeltingProgress}%</span>
+            <h2 className="text-xl font-bold text-white">AI 正在分析你的项目组合</h2>
+            <p className="text-sm text-zinc-400 max-w-sm mx-auto leading-relaxed">
+              读取仓库信息、分析依赖关系、检测潜在问题、搜索补充组件...
+            </p>
           </div>
-        </div>
+
+          {/* Log console */}
+          <div className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-4 text-left font-mono text-xs text-zinc-400 space-y-1.5 h-44 overflow-y-auto relative z-10">
+            <div className="text-zinc-600 border-b border-zinc-800 pb-2 mb-2 flex items-center justify-between font-bold">
+              <span>分析日志</span>
+              <span className="animate-pulse w-2 h-2 rounded-full bg-green-500" />
+            </div>
+            {smeltingLogs.map((log, idx) => (
+              <p key={idx}><span className="text-amber-500">❯</span> {log}</p>
+            ))}
+          </div>
+
+          {apiError && (
+            <div className="bg-red-950/15 border border-red-900/30 p-5 rounded-lg text-left text-sm space-y-3 w-full">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-red-400">分析中断</p>
+                  <p className="text-zinc-400 text-xs mt-1">{apiError}</p>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2 border-t border-red-900/15">
+                <button onClick={runSmelting} className="bg-red-950/30 hover:bg-red-900/20 text-red-300 font-bold px-4 py-2 border border-red-800 rounded-lg cursor-pointer text-xs flex items-center gap-1.5 transition-colors">
+                  <RefreshCw className="w-3 h-3" /> 重试
+                </button>
+                <button onClick={handleGoBack} className="bg-zinc-900 hover:bg-zinc-800 text-zinc-300 px-4 py-2 border border-zinc-700 rounded-lg cursor-pointer text-xs transition-colors">
+                  返回修改设置
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
