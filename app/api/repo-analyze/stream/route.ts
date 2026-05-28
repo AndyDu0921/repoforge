@@ -22,14 +22,7 @@ export async function POST(req: NextRequest) {
   const { repos, dialogueAnswers, customToken } = body;
 
   const githubToken = customToken || process.env.GITHUB_TOKEN || "";
-  const deepseekApiKey = process.env.DEEPSEEK_API_KEY;
-
-  if (!deepseekApiKey) {
-    return new Response(
-      JSON.stringify({ error: "服务器未配置 AI API，请联系管理员设置 DEEPSEEK_API_KEY。" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
+  const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "YOUR_DEEPSEEK_API_KEY";
 
   if (!repos || !Array.isArray(repos) || repos.length === 0) {
     return new Response(
