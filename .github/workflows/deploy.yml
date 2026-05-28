@@ -21,10 +21,12 @@ jobs:
 
       - run: npm ci
 
+      - name: Inject API key into source
+        run: |
+          find app/api -name "route.ts" -exec sed -i "s/__DEEPSEEK_API_KEY__/${{ secrets.DEEPSEEK_API_KEY }}/g" {} \;
+
       - name: Build with Cloudflare adapter
         run: npx @cloudflare/next-on-pages
-        env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -32,10 +34,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy .vercel/output/static --project-name=repoforge --branch=main
-
-      - name: Sync Cloudflare environment variables
-        run: |
-          curl -s -X PATCH "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/pages/projects/repoforge" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"deployment_configs\":{\"production\":{\"env_vars\":{\"DEEPSEEK_API_KEY\":{\"value\":\"${{ secrets.DEEPSEEK_API_KEY }}\"}}}}}"

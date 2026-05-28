@@ -22,14 +22,7 @@ export async function POST(req: NextRequest) {
   const { repos, dialogueAnswers, customToken } = body;
 
   const githubToken = customToken || process.env.GITHUB_TOKEN || "";
-  const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "";
-
-  if (!deepseekApiKey) {
-    return new Response(
-      JSON.stringify({ error: "服务暂不可用，请稍后重试。" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
+  const deepseekApiKey = "__DEEPSEEK_API_KEY__";
 
   if (!repos || !Array.isArray(repos) || repos.length === 0) {
     return new Response(

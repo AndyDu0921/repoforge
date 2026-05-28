@@ -28,11 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const githubToken = customToken || process.env.GITHUB_TOKEN || "";
-    const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "";
-
-    if (!deepseekApiKey) {
-      return NextResponse.json({ error: "服务暂不可用，请稍后重试。" }, { status: 500 });
-    }
+    const deepseekApiKey = "__DEEPSEEK_API_KEY__";
 
     // 1. Fetch all repo metadata in parallel
     const fetchedRepos: FetchedRepo[] = [];
