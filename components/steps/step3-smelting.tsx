@@ -67,13 +67,15 @@ export default function Step3Smelting() {
       const decoder = new TextDecoder();
       let buffer = "";
 
-      while (true) {
+      let streamDone = false;
+      while (!streamDone) {
         const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
+        streamDone = done;
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+        }
         const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        buffer = streamDone ? "" : lines.pop() || "";
 
         let currentEvent = "";
         for (const line of lines) {
