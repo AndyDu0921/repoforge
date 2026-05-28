@@ -67,6 +67,7 @@ export default function Step3Smelting() {
       const decoder = new TextDecoder();
       let buffer = "";
 
+      let gotResult = false;
       let streamDone = false;
       while (!streamDone) {
         const { done, value } = await reader.read();
@@ -82,12 +83,40 @@ export default function Step3Smelting() {
           if (line.startsWith("event: ")) {
             currentEvent = line.slice(7).trim();
           } else if (line.startsWith("data: ")) {
-            const data = line.slice(6);
+            const raw = line.slice(6);
             try {
-              const parsed = JSON.parse(data);
+              const parsed = JSON.parse(raw);
               handleSSEEvent(currentEvent, parsed);
+              if (currentEvent === "result") gotResult = true;
             } catch { /* skip */ }
           }
+        }
+      }
+
+      // Fallback: if SSE parsing missed the result event, fetch directly
+      if (!gotResult) {
+        const techLabel = techPreference === "typescript-next" ? "Pure TypeScript (Next.js / Tailwind)" :
+          techPreference === "python-ai" ? "Python AI Backend (FastAPI + React)" :
+          techPreference === "go-rust" ? "Go/Rust High Performance backend stack" :
+          "Container Docker Agnostic microservices mesh";
+
+        const fallbackRes = await fetch("/api/repo-analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            repos: repos.map((r) => ({ owner: r.owner, repo: r.repo, userNotes: r.userNotes })),
+            dialogueAnswers: { audience, audienceCustom, commercial, commercialCustom, licenseChoice, licenseCustom, techPreference: techLabel, techCustom, targetGoal },
+            customToken: githubPat || undefined,
+          }),
+        });
+
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          dispatch({ type: "SET_SMELTING_PROGRESS", payload: 100 });
+          dispatch({ type: "SET_BLUEPRINT_RESULT", payload: fallbackData.data });
+          dispatch({ type: "SET_STEP", payload: 4 });
+        } else {
+          throw new Error("分析服务暂不可用。");
         }
       }
     } catch (err: any) {
